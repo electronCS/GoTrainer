@@ -1,0 +1,564 @@
+2023-08-24 17:24:44-0400: Running with following config:
+allowResignation = true
+analysisPVLen = 50
+chosenMovePrune = 1
+chosenMoveSubtract = 0
+chosenMoveTemperature = 0.00
+chosenMoveTemperatureEarly = 0.0
+chosenMoveTemperatureHalflife = 19
+cleanupBeforePass = true
+cpuctExploration = 1.1
+cudaUseFP16 = true
+cudaUseNHWC = true
+drawEquivalentWinsForWhite = 0.5
+dynamicScoreCenterZeroWeight = 0.20
+dynamicScoreUtilityFactor = 0.20
+fpuReductionMax = 0.2
+fpuUseParentAverage = true
+koRule = POSITIONAL
+lagBuffer = 0.0
+lcbStdevs = 5.0
+logAllGTPCommunication = false
+logFile = gtp.log
+logSearchInfo = false
+logToStderr = false
+maxTime = 20
+minVisitPropForLCB = 0.15
+multiStoneSuicideLegal = true
+mutexPoolSize = 8192
+nnCacheSizePowerOfTwo = 18
+nnMaxBatchSize = 80
+nnMutexPoolSizePowerOfTwo = 14
+nnRandomize = true
+noResultUtilityForWhite = 0.0
+numAnalysisThreads = 2
+numNNServerThreadsPerModel = 1
+numSearchThreads = 80
+numVirtualLossesPerThread = 1
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.98
+rootDirichletNoiseTotalConcentration = 10.83
+rootDirichletNoiseWeight = 0.25
+rootEndingBonusPoints = 0.5
+rootNoiseEnabled = false
+rootPruneUselessMoves = true
+scoringRule = AREA
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+staticScoreUtilityFactor = 0.20
+useLcbForSelection = true
+valueWeightExponent = 0.5
+winLossUtilityFactor = 1.0
+
+2023-08-24 17:24:44-0400: Analysis Engine starting...
+2023-08-24 17:24:44-0400: KataGo v1.13.1
+2023-08-24 17:24:44-0400: nnRandSeed0 = 1464786084964686483
+2023-08-24 17:24:44-0400: After dedups: nnModelFile0 = 6-23_18block.bin.gz useFP16 auto useNHWC auto
+2023-08-24 17:24:44-0400: Initializing neural net buffer to be size 19 * 19 allowing smaller boards
+2023-08-24 17:24:45-0400: TensorRT backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2023-08-24 17:24:45-0400: TensorRT backend thread 0: Initializing (may take a long time)
+2023-08-24 17:24:48-0400: Creating new timing cache
+2023-08-24 17:28:29-0400: Saved new timing cache to C:\Users\alan0\Desktop\goTrainer\goTrainer/KataGoData/trtcache/trt-8502_gpu-1042a4e3_tune-d48a44026a63_max19x19_batch80_fp16
+2023-08-24 17:28:29-0400: TensorRT backend thread 0: Model version 14 useFP16 = true
+2023-08-24 17:28:29-0400: TensorRT backend thread 0: Model name: kata1-b18c384nbt-s6582191360-d3422816034
+2023-08-24 17:28:29-0400: Note: nnMaxBatchSize * number of GPUs (80) is smaller than numSearchThreads * numAnalysisThreads (160)
+2023-08-24 17:28:29-0400: The number of simultaneous threads that might query the GPU could be larger than the batch size that the GPU will handle at once.
+2023-08-24 17:28:29-0400: It may improve performance to increase nnMaxBatchSize, unless you are constrained on GPU memory.
+2023-08-24 17:28:29-0400: --------------
+2023-08-24 17:28:29-0400: WARNING: Config had unused keys! You may have a typo, an option you specified is being unused from katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'allowResignation' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'cleanupBeforePass' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'fpuUseParentAverage' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'koRule' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'logAllGTPCommunication' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'multiStoneSuicideLegal' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'mutexPoolSize' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'ponderingEnabled' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'resignConsecTurns' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'resignThreshold' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'scoringRule' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'searchFactorWhenWinning' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: WARNING: Unused key 'searchFactorWhenWinningThreshold' in katago-gtp80.cfg
+2023-08-24 17:28:29-0400: --------------
+2023-08-24 17:28:29-0400: Loaded config katago-gtp80.cfg
+2023-08-24 17:28:29-0400: Loaded model 6-23_18block.bin.gz
+2023-08-24 17:28:29-0400: Analyzing up to 2 positions at a time in parallel
+2023-08-24 17:28:29-0400: Started, ready to begin handling requests
+2023-08-24 17:28:49-0400: 6-23_18block.bin.gz
+2023-08-24 17:28:49-0400: NN rows: 49128
+2023-08-24 17:28:49-0400: NN batches: 892
+2023-08-24 17:28:49-0400: NN avg batch size: 55.0762
+2023-08-24 17:28:49-0400: GPU -1 finishing, processed 49128 rows 892 batches
+2023-08-24 17:28:49-0400: All cleaned up, quitting
+2023-08-25 14:20:33-0400: Running with following config:
+allowResignation = true
+analysisPVLen = 50
+chosenMovePrune = 1
+chosenMoveSubtract = 0
+chosenMoveTemperature = 0.00
+chosenMoveTemperatureEarly = 0.0
+chosenMoveTemperatureHalflife = 19
+cleanupBeforePass = true
+cpuctExploration = 1.1
+cudaUseFP16 = true
+cudaUseNHWC = true
+drawEquivalentWinsForWhite = 0.5
+dynamicScoreCenterZeroWeight = 0.20
+dynamicScoreUtilityFactor = 0.20
+fpuReductionMax = 0.2
+fpuUseParentAverage = true
+koRule = POSITIONAL
+lagBuffer = 0.0
+lcbStdevs = 5.0
+logAllGTPCommunication = false
+logFile = gtp.log
+logSearchInfo = false
+logToStderr = false
+maxTime = 20
+minVisitPropForLCB = 0.15
+multiStoneSuicideLegal = true
+mutexPoolSize = 8192
+nnCacheSizePowerOfTwo = 18
+nnMaxBatchSize = 80
+nnMutexPoolSizePowerOfTwo = 14
+nnRandomize = true
+noResultUtilityForWhite = 0.0
+numAnalysisThreads = 2
+numNNServerThreadsPerModel = 1
+numSearchThreads = 80
+numVirtualLossesPerThread = 1
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.98
+rootDirichletNoiseTotalConcentration = 10.83
+rootDirichletNoiseWeight = 0.25
+rootEndingBonusPoints = 0.5
+rootNoiseEnabled = false
+rootPruneUselessMoves = true
+scoringRule = AREA
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+staticScoreUtilityFactor = 0.20
+useLcbForSelection = true
+valueWeightExponent = 0.5
+winLossUtilityFactor = 1.0
+
+2023-08-25 14:20:33-0400: Analysis Engine starting...
+2023-08-25 14:20:33-0400: KataGo v1.13.1
+2023-08-25 14:20:33-0400: nnRandSeed0 = 3953625208792639679
+2023-08-25 14:20:33-0400: After dedups: nnModelFile0 = 6-23_18block.bin.gz useFP16 auto useNHWC auto
+2023-08-25 14:20:33-0400: Initializing neural net buffer to be size 19 * 19 allowing smaller boards
+2023-08-25 14:20:34-0400: TensorRT backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2023-08-25 14:20:34-0400: TensorRT backend thread 0: Initializing (may take a long time)
+2023-08-25 14:20:38-0400: Using existing timing cache at C:\Users\alan0\Desktop\goTrainer\goTrainer/KataGoData/trtcache/trt-8502_gpu-1042a4e3_tune-d48a44026a63_max19x19_batch80_fp16
+2023-08-25 14:21:03-0400: TensorRT backend thread 0: Model version 14 useFP16 = true
+2023-08-25 14:21:03-0400: TensorRT backend thread 0: Model name: kata1-b18c384nbt-s6582191360-d3422816034
+2023-08-25 14:21:03-0400: Note: nnMaxBatchSize * number of GPUs (80) is smaller than numSearchThreads * numAnalysisThreads (160)
+2023-08-25 14:21:03-0400: The number of simultaneous threads that might query the GPU could be larger than the batch size that the GPU will handle at once.
+2023-08-25 14:21:03-0400: It may improve performance to increase nnMaxBatchSize, unless you are constrained on GPU memory.
+2023-08-25 14:21:03-0400: --------------
+2023-08-25 14:21:03-0400: WARNING: Config had unused keys! You may have a typo, an option you specified is being unused from katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'allowResignation' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'cleanupBeforePass' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'fpuUseParentAverage' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'koRule' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'logAllGTPCommunication' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'multiStoneSuicideLegal' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'mutexPoolSize' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'ponderingEnabled' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'resignConsecTurns' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'resignThreshold' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'scoringRule' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'searchFactorWhenWinning' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: WARNING: Unused key 'searchFactorWhenWinningThreshold' in katago-gtp80.cfg
+2023-08-25 14:21:03-0400: --------------
+2023-08-25 14:21:03-0400: Loaded config katago-gtp80.cfg
+2023-08-25 14:21:03-0400: Loaded model 6-23_18block.bin.gz
+2023-08-25 14:21:03-0400: Analyzing up to 2 positions at a time in parallel
+2023-08-25 14:21:03-0400: Started, ready to begin handling requests
+2023-08-25 14:21:23-0400: 6-23_18block.bin.gz
+2023-08-25 14:21:23-0400: NN rows: 47899
+2023-08-25 14:21:23-0400: NN batches: 866
+2023-08-25 14:21:23-0400: NN avg batch size: 55.3106
+2023-08-25 14:21:23-0400: GPU -1 finishing, processed 47899 rows 866 batches
+2023-08-25 14:21:23-0400: All cleaned up, quitting
+2023-08-25 16:13:14-0400: Running with following config:
+allowResignation = true
+analysisPVLen = 50
+chosenMovePrune = 1
+chosenMoveSubtract = 0
+chosenMoveTemperature = 0.00
+chosenMoveTemperatureEarly = 0.0
+chosenMoveTemperatureHalflife = 19
+cleanupBeforePass = true
+cpuctExploration = 1.1
+cudaUseFP16 = true
+cudaUseNHWC = true
+drawEquivalentWinsForWhite = 0.5
+dynamicScoreCenterZeroWeight = 0.20
+dynamicScoreUtilityFactor = 0.20
+fpuReductionMax = 0.2
+fpuUseParentAverage = true
+koRule = POSITIONAL
+lagBuffer = 0.0
+lcbStdevs = 5.0
+logAllGTPCommunication = false
+logFile = gtp.log
+logSearchInfo = false
+logToStderr = false
+maxTime = 20
+minVisitPropForLCB = 0.15
+multiStoneSuicideLegal = true
+mutexPoolSize = 8192
+nnCacheSizePowerOfTwo = 18
+nnMaxBatchSize = 80
+nnMutexPoolSizePowerOfTwo = 14
+nnRandomize = true
+noResultUtilityForWhite = 0.0
+numAnalysisThreads = 2
+numNNServerThreadsPerModel = 1
+numSearchThreads = 80
+numVirtualLossesPerThread = 1
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.98
+rootDirichletNoiseTotalConcentration = 10.83
+rootDirichletNoiseWeight = 0.25
+rootEndingBonusPoints = 0.5
+rootNoiseEnabled = false
+rootPruneUselessMoves = true
+scoringRule = AREA
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+staticScoreUtilityFactor = 0.20
+useLcbForSelection = true
+valueWeightExponent = 0.5
+winLossUtilityFactor = 1.0
+
+2023-08-25 16:13:14-0400: Analysis Engine starting...
+2023-08-25 16:13:14-0400: KataGo v1.13.1
+2023-08-25 16:13:14-0400: nnRandSeed0 = 4609465630584922188
+2023-08-25 16:13:14-0400: After dedups: nnModelFile0 = 6-23_18block.bin.gz useFP16 auto useNHWC auto
+2023-08-25 16:13:14-0400: Initializing neural net buffer to be size 19 * 19 allowing smaller boards
+2023-08-25 16:13:16-0400: TensorRT backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2023-08-25 16:13:16-0400: TensorRT backend thread 0: Initializing (may take a long time)
+2023-08-25 16:13:20-0400: Using existing timing cache at C:\Users\alan0\Desktop\goTrainer\goTrainer/KataGoData/trtcache/trt-8502_gpu-1042a4e3_tune-d48a44026a63_max19x19_batch80_fp16
+2023-08-25 16:13:42-0400: TensorRT backend thread 0: Model version 14 useFP16 = true
+2023-08-25 16:13:42-0400: TensorRT backend thread 0: Model name: kata1-b18c384nbt-s6582191360-d3422816034
+2023-08-25 16:13:42-0400: Note: nnMaxBatchSize * number of GPUs (80) is smaller than numSearchThreads * numAnalysisThreads (160)
+2023-08-25 16:13:42-0400: The number of simultaneous threads that might query the GPU could be larger than the batch size that the GPU will handle at once.
+2023-08-25 16:13:42-0400: It may improve performance to increase nnMaxBatchSize, unless you are constrained on GPU memory.
+2023-08-25 16:13:42-0400: --------------
+2023-08-25 16:13:42-0400: WARNING: Config had unused keys! You may have a typo, an option you specified is being unused from katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'allowResignation' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'cleanupBeforePass' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'fpuUseParentAverage' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'koRule' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'logAllGTPCommunication' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'multiStoneSuicideLegal' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'mutexPoolSize' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'ponderingEnabled' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'resignConsecTurns' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'resignThreshold' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'scoringRule' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'searchFactorWhenWinning' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: WARNING: Unused key 'searchFactorWhenWinningThreshold' in katago-gtp80.cfg
+2023-08-25 16:13:42-0400: --------------
+2023-08-25 16:13:42-0400: Loaded config katago-gtp80.cfg
+2023-08-25 16:13:42-0400: Loaded model 6-23_18block.bin.gz
+2023-08-25 16:13:42-0400: Analyzing up to 2 positions at a time in parallel
+2023-08-25 16:13:42-0400: Started, ready to begin handling requests
+2023-08-25 16:14:02-0400: 6-23_18block.bin.gz
+2023-08-25 16:14:02-0400: NN rows: 48593
+2023-08-25 16:14:02-0400: NN batches: 887
+2023-08-25 16:14:02-0400: NN avg batch size: 54.7835
+2023-08-25 16:14:02-0400: GPU -1 finishing, processed 48593 rows 887 batches
+2023-08-25 16:14:02-0400: All cleaned up, quitting
+2023-08-25 16:14:13-0400: Running with following config:
+allowResignation = true
+analysisPVLen = 50
+chosenMovePrune = 1
+chosenMoveSubtract = 0
+chosenMoveTemperature = 0.00
+chosenMoveTemperatureEarly = 0.0
+chosenMoveTemperatureHalflife = 19
+cleanupBeforePass = true
+cpuctExploration = 1.1
+cudaUseFP16 = true
+cudaUseNHWC = true
+drawEquivalentWinsForWhite = 0.5
+dynamicScoreCenterZeroWeight = 0.20
+dynamicScoreUtilityFactor = 0.20
+fpuReductionMax = 0.2
+fpuUseParentAverage = true
+koRule = POSITIONAL
+lagBuffer = 0.0
+lcbStdevs = 5.0
+logAllGTPCommunication = false
+logFile = gtp.log
+logSearchInfo = false
+logToStderr = false
+maxTime = 20
+minVisitPropForLCB = 0.15
+multiStoneSuicideLegal = true
+mutexPoolSize = 8192
+nnCacheSizePowerOfTwo = 18
+nnMaxBatchSize = 80
+nnMutexPoolSizePowerOfTwo = 14
+nnRandomize = true
+noResultUtilityForWhite = 0.0
+numAnalysisThreads = 2
+numNNServerThreadsPerModel = 1
+numSearchThreads = 80
+numVirtualLossesPerThread = 1
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.98
+rootDirichletNoiseTotalConcentration = 10.83
+rootDirichletNoiseWeight = 0.25
+rootEndingBonusPoints = 0.5
+rootNoiseEnabled = false
+rootPruneUselessMoves = true
+scoringRule = AREA
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+staticScoreUtilityFactor = 0.20
+useLcbForSelection = true
+valueWeightExponent = 0.5
+winLossUtilityFactor = 1.0
+
+2023-08-25 16:14:13-0400: Analysis Engine starting...
+2023-08-25 16:14:13-0400: KataGo v1.13.1
+2023-08-25 16:14:13-0400: nnRandSeed0 = 1611995081550078049
+2023-08-25 16:14:13-0400: After dedups: nnModelFile0 = 6-23_18block.bin.gz useFP16 auto useNHWC auto
+2023-08-25 16:14:13-0400: Initializing neural net buffer to be size 19 * 19 allowing smaller boards
+2023-08-25 16:14:14-0400: TensorRT backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2023-08-25 16:14:14-0400: TensorRT backend thread 0: Initializing (may take a long time)
+2023-08-25 16:14:17-0400: Using existing timing cache at C:\Users\alan0\Desktop\goTrainer\goTrainer/KataGoData/trtcache/trt-8502_gpu-1042a4e3_tune-d48a44026a63_max19x19_batch80_fp16
+2023-08-25 16:14:40-0400: TensorRT backend thread 0: Model version 14 useFP16 = true
+2023-08-25 16:14:40-0400: TensorRT backend thread 0: Model name: kata1-b18c384nbt-s6582191360-d3422816034
+2023-08-25 16:14:40-0400: Note: nnMaxBatchSize * number of GPUs (80) is smaller than numSearchThreads * numAnalysisThreads (160)
+2023-08-25 16:14:40-0400: The number of simultaneous threads that might query the GPU could be larger than the batch size that the GPU will handle at once.
+2023-08-25 16:14:40-0400: It may improve performance to increase nnMaxBatchSize, unless you are constrained on GPU memory.
+2023-08-25 16:14:40-0400: --------------
+2023-08-25 16:14:40-0400: WARNING: Config had unused keys! You may have a typo, an option you specified is being unused from katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'allowResignation' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'cleanupBeforePass' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'fpuUseParentAverage' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'koRule' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'logAllGTPCommunication' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'multiStoneSuicideLegal' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'mutexPoolSize' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'ponderingEnabled' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'resignConsecTurns' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'resignThreshold' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'scoringRule' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'searchFactorWhenWinning' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: WARNING: Unused key 'searchFactorWhenWinningThreshold' in katago-gtp80.cfg
+2023-08-25 16:14:40-0400: --------------
+2023-08-25 16:14:40-0400: Loaded config katago-gtp80.cfg
+2023-08-25 16:14:40-0400: Loaded model 6-23_18block.bin.gz
+2023-08-25 16:14:40-0400: Analyzing up to 2 positions at a time in parallel
+2023-08-25 16:14:40-0400: Started, ready to begin handling requests
+2023-08-25 16:14:40-0400: 6-23_18block.bin.gz
+2023-08-25 16:14:40-0400: NN rows: 0
+2023-08-25 16:14:40-0400: NN batches: 0
+2023-08-25 16:14:40-0400: NN avg batch size: -nan(ind)
+2023-08-25 16:14:40-0400: GPU -1 finishing, processed 0 rows 0 batches
+2023-08-25 16:14:40-0400: All cleaned up, quitting
+2023-08-25 16:14:50-0400: Running with following config:
+allowResignation = true
+analysisPVLen = 50
+chosenMovePrune = 1
+chosenMoveSubtract = 0
+chosenMoveTemperature = 0.00
+chosenMoveTemperatureEarly = 0.0
+chosenMoveTemperatureHalflife = 19
+cleanupBeforePass = true
+cpuctExploration = 1.1
+cudaUseFP16 = true
+cudaUseNHWC = true
+drawEquivalentWinsForWhite = 0.5
+dynamicScoreCenterZeroWeight = 0.20
+dynamicScoreUtilityFactor = 0.20
+fpuReductionMax = 0.2
+fpuUseParentAverage = true
+koRule = POSITIONAL
+lagBuffer = 0.0
+lcbStdevs = 5.0
+logAllGTPCommunication = false
+logFile = gtp.log
+logSearchInfo = false
+logToStderr = false
+maxTime = 20
+minVisitPropForLCB = 0.15
+multiStoneSuicideLegal = true
+mutexPoolSize = 8192
+nnCacheSizePowerOfTwo = 18
+nnMaxBatchSize = 80
+nnMutexPoolSizePowerOfTwo = 14
+nnRandomize = true
+noResultUtilityForWhite = 0.0
+numAnalysisThreads = 2
+numNNServerThreadsPerModel = 1
+numSearchThreads = 80
+numVirtualLossesPerThread = 1
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.98
+rootDirichletNoiseTotalConcentration = 10.83
+rootDirichletNoiseWeight = 0.25
+rootEndingBonusPoints = 0.5
+rootNoiseEnabled = false
+rootPruneUselessMoves = true
+scoringRule = AREA
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+staticScoreUtilityFactor = 0.20
+useLcbForSelection = true
+valueWeightExponent = 0.5
+winLossUtilityFactor = 1.0
+
+2023-08-25 16:14:50-0400: Analysis Engine starting...
+2023-08-25 16:14:50-0400: KataGo v1.13.1
+2023-08-25 16:14:50-0400: nnRandSeed0 = 15027059877509413891
+2023-08-25 16:14:50-0400: After dedups: nnModelFile0 = 6-23_18block.bin.gz useFP16 auto useNHWC auto
+2023-08-25 16:14:50-0400: Initializing neural net buffer to be size 19 * 19 allowing smaller boards
+2023-08-25 16:14:51-0400: TensorRT backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2023-08-25 16:14:51-0400: TensorRT backend thread 0: Initializing (may take a long time)
+2023-09-15 20:50:29-0400: Running with following config:
+allowResignation = true
+analysisPVLen = 50
+chosenMovePrune = 1
+chosenMoveSubtract = 0
+chosenMoveTemperature = 0.00
+chosenMoveTemperatureEarly = 0.0
+chosenMoveTemperatureHalflife = 19
+cleanupBeforePass = true
+cpuctExploration = 1.1
+cudaUseFP16 = true
+cudaUseNHWC = true
+drawEquivalentWinsForWhite = 0.5
+dynamicScoreCenterZeroWeight = 0.20
+dynamicScoreUtilityFactor = 0.20
+fpuReductionMax = 0.2
+fpuUseParentAverage = true
+koRule = POSITIONAL
+lagBuffer = 0.0
+lcbStdevs = 5.0
+logAllGTPCommunication = false
+logFile = gtp.log
+logSearchInfo = false
+logToStderr = false
+maxTime = 20
+minVisitPropForLCB = 0.15
+multiStoneSuicideLegal = true
+mutexPoolSize = 8192
+nnCacheSizePowerOfTwo = 18
+nnMaxBatchSize = 80
+nnMutexPoolSizePowerOfTwo = 14
+nnRandomize = true
+noResultUtilityForWhite = 0.0
+numAnalysisThreads = 2
+numNNServerThreadsPerModel = 1
+numSearchThreads = 80
+numVirtualLossesPerThread = 1
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.98
+rootDirichletNoiseTotalConcentration = 10.83
+rootDirichletNoiseWeight = 0.25
+rootEndingBonusPoints = 0.5
+rootNoiseEnabled = false
+rootPruneUselessMoves = true
+scoringRule = AREA
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+staticScoreUtilityFactor = 0.20
+useLcbForSelection = true
+valueWeightExponent = 0.5
+winLossUtilityFactor = 1.0
+
+2023-09-15 20:50:29-0400: Analysis Engine starting...
+2023-09-15 20:50:29-0400: KataGo v1.13.1
+2023-09-15 20:50:29-0400: nnRandSeed0 = 11947441606075241490
+2023-09-15 20:50:29-0400: After dedups: nnModelFile0 = 6-23_18block.bin.gz useFP16 auto useNHWC auto
+2023-09-15 20:50:29-0400: Initializing neural net buffer to be size 19 * 19 allowing smaller boards
+2023-09-15 20:50:30-0400: TensorRT backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2023-09-15 20:50:30-0400: TensorRT backend thread 0: Initializing (may take a long time)
+2023-09-15 20:50:35-0400: Using existing timing cache at C:\Users\alan0\Desktop\goTrainer\goTrainer/KataGoData/trtcache/trt-8502_gpu-1042a4e3_tune-d48a44026a63_max19x19_batch80_fp16
+2023-09-15 20:56:22-0400: Running with following config:
+allowResignation = true
+analysisPVLen = 50
+chosenMovePrune = 1
+chosenMoveSubtract = 0
+chosenMoveTemperature = 0.00
+chosenMoveTemperatureEarly = 0.0
+chosenMoveTemperatureHalflife = 19
+cleanupBeforePass = true
+cpuctExploration = 1.1
+cudaUseFP16 = true
+cudaUseNHWC = true
+drawEquivalentWinsForWhite = 0.5
+dynamicScoreCenterZeroWeight = 0.20
+dynamicScoreUtilityFactor = 0.20
+fpuReductionMax = 0.2
+fpuUseParentAverage = true
+koRule = POSITIONAL
+lagBuffer = 0.0
+lcbStdevs = 5.0
+logAllGTPCommunication = false
+logFile = gtp.log
+logSearchInfo = false
+logToStderr = false
+maxTime = 20
+minVisitPropForLCB = 0.15
+multiStoneSuicideLegal = true
+mutexPoolSize = 8192
+nnCacheSizePowerOfTwo = 18
+nnMaxBatchSize = 80
+nnMutexPoolSizePowerOfTwo = 14
+nnRandomize = true
+noResultUtilityForWhite = 0.0
+numAnalysisThreads = 2
+numNNServerThreadsPerModel = 1
+numSearchThreads = 80
+numVirtualLossesPerThread = 1
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.98
+rootDirichletNoiseTotalConcentration = 10.83
+rootDirichletNoiseWeight = 0.25
+rootEndingBonusPoints = 0.5
+rootNoiseEnabled = false
+rootPruneUselessMoves = true
+scoringRule = AREA
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+staticScoreUtilityFactor = 0.20
+useLcbForSelection = true
+valueWeightExponent = 0.5
+winLossUtilityFactor = 1.0
+
+2023-09-15 20:56:22-0400: Analysis Engine starting...
+2023-09-15 20:56:22-0400: KataGo v1.13.1
+2023-09-15 20:56:22-0400: nnRandSeed0 = 17777166000335658634
+2023-09-15 20:56:22-0400: After dedups: nnModelFile0 = 6-23_18block.bin.gz useFP16 auto useNHWC auto
+2023-09-15 20:56:22-0400: Initializing neural net buffer to be size 19 * 19 allowing smaller boards
+2023-09-15 20:56:24-0400: TensorRT backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2023-09-15 20:56:24-0400: TensorRT backend thread 0: Initializing (may take a long time)
