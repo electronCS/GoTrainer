@@ -1,7 +1,7 @@
 import copy
 import os
 
-from sgfmill import sgf, boards
+from sgfmill import sgf, boards, ascii_boards
 from katago_sample import KataGo
 import numpy as np
 
@@ -52,7 +52,20 @@ def generate_board_with_borders(size):
     return board
 
 
-def pattern_search(pattern_template, pattern_turn, filepath):
+def findbest(moveInfo, color):
+    best_score = -999
+    best_move = None
+    print("color is", color)
+    for move in moveInfo:
+        if move['scoreLead'] > best_score:
+            best_score = move['scoreLead']
+            best_move = move
+
+    print(f"best move for {color} is {best_move['move']} with score lead {best_score}")
+    print(best_move)
+
+
+def pattern_search(pattern_template, pattern_turn, filepath, katago):
     f = open(filepath, 'rb')
     game = sgf.Sgf_game.from_bytes(f.read())
 
@@ -60,12 +73,10 @@ def pattern_search(pattern_template, pattern_turn, filepath):
     all_patterns_w = generate_orientations(reverse_pattern_colors(pattern_template))
     all_patterns = [all_patterns_b, all_patterns_w]
     board = generate_board_with_borders(19)
-    color = 1
     move_num = 0
 
-    # katago = KataGo("katago.exe", "katago-gtp80.cfg", "6-23_18block.bin.gz")
-    # board2 = boards.Board(19)
-    # moves = []
+    board2 = boards.Board(19)
+    moves = []
 
     for node in game.get_main_sequence():
         move = node.get_move()
@@ -73,29 +84,38 @@ def pattern_search(pattern_template, pattern_turn, filepath):
         if move[0] is None:
             continue
 
-        # board2.play(move[1][0], move[1][1], move[0])
-        # katago.query(board2, [], 6.5)
-        # moves.append(move)
-
+        moves.append(move)
         coor = (move[1][0] + 1, move[1][1] + 1)
-
         move_num += 1
 
         if move[0] == 'b':
-            color = 1
+            color_code = 1
             board[coor[0]][coor[1]] = 1
         elif move[0] == 'w':
-            color = 2
+            color_code = 2
             board[coor[0]][coor[1]] = 2
-        for pattern in all_patterns[color == pattern_turn]:
+        for pattern in all_patterns[color_code == pattern_turn]:
             for i in range(len(pattern)):
                 for j in range(len(pattern[0])):
-                    if pattern[i][j] == color:
+                    if pattern[i][j] == color_code:
                         temp_board = [row[coor[1] - j: coor[1] - j + len(pattern[0])] for row in
                                       board[coor[0] - i: coor[0] - i + len(pattern)]]
                         if temp_board == pattern:
                             print(f"found pattern on move {move_num} in {filepath}")
-                            print_board(temp_board)
+
+                            displayboard = boards.Board(19)
+                            for color, move in moves:
+                                if move != "pass":
+                                    row, col = move
+                                    displayboard.play(row, col, color)
+                            print(ascii_boards.render_board(displayboard))
+
+                            if katago:
+                                print("moves is ", moves)
+                                result = katago.query(board2, moves, 7.5)
+                                print("length is ", len(result["moveInfos"]))
+                                findbest(result["moveInfos"], moves[-2][0])
+
 
     f.close()
 
@@ -111,6 +131,7 @@ if __name__ == '__main__':
     # 2 - white (colors for 1 and two are swapped also during search)
     # 3 - anything
     # 4 - candidate move?
+    use_kata = False
     pattern_template = [[0,0,0,1,0,0,-1],
                         [0,0,0,0,0,0,-1],
                         [0,1,1,0,0,0,-1],
@@ -120,21 +141,28 @@ if __name__ == '__main__':
                         [-1,-1,-1,-1,-1,-1,-1]]
     pattern_turn = 1
 
+    if use_kata:
+        katago = KataGo("katago.exe", "katago-gtp80.cfg", "6-23_18block.bin.gz")
+    else:
+        katago = None
+
     count = 0
     for filename in os.listdir('go4go_collection'):
         if (filename < "__go4go_2019"):
             continue
         full_file_path = os.path.join('go4go_collection', filename)
         print(f"trying {filename}")
-        pattern_search(pattern_template, pattern_turn, full_file_path)
+        pattern_search(pattern_template, pattern_turn, full_file_path, katago)
         count += 1
-        if count == 30:
+        if count == 20:
+            print("done")
             break
 
+    if use_kata:
+        katago.close()
     # pattern_search(pattern_template, pattern_turn, 'test.sgf')
 
     # katago = KataGo("katago.exe", "katago-gtp80.cfg", "6-23_18block.bin.gz")
-    # board = sgfmill.boards.Board(19)
 
 
 
