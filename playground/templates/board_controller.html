@@ -1,0 +1,86 @@
+<!-- templates/board_with_moves.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Go Board</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'playground/css/board.css' %}">
+
+</head>
+<script>
+    window.sgfString = `{{ sgf_string|safe|escapejs }}`;
+
+    console.log("Loaded SGF string:", window.sgfString);
+    // console.log("final board state is " + window.finalBoardState);
+</script>
+<body>
+<div id="app">
+
+
+    {% block content %}
+    <h2>Board Size: 19</h2>
+
+        <!-- Buttons -->
+    <button @click="zoomOut">Zoom Out</button>
+    <button @click="zoomIn">Zoom In</button>
+    <!--<button @click="$refs.goBoard.zoomOut()">Zoom Out</button>-->
+    <button @click="$refs.goBoard.moveBoard(30, 0)">Move Right</button>
+    <button @click="$refs.goBoard.moveBoard(-30, 0)">Move Left</button>
+        <!-- Add Up and Down similarly -->
+
+        <!-- Go Board Component -->
+    <go-board-controller></go-board-controller>
+
+    {% endblock %}
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new Vue({
+                el: '#app',
+                // delimiters: ['{{', '}}'],  // Change if needed
+                data: {
+                    // boardData: [], // This will be populated from Django context
+                    translateX: 0,
+                    translateY: 0,
+                    scale: 1.2
+
+                },
+                mounted() {
+                    // if (window.sgfString) {
+                    //     // consoel
+                    //     this.loadSgf(window.sgfString);
+                    // }
+
+                },
+                methods: {
+
+                    zoomIn() {
+                        this.scale += 0.1;
+                        console.log("zooming in");
+                    },
+                    zoomOut() {
+                        if (this.scale > 0.2) this.scale -= 0.1;
+                    },
+                    moveBoard(dx, dy) {
+                        this.translateX += dx;
+                        this.translateY += dy;
+                    }
+                }
+
+            })
+        });
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sgfjs"></script>
+<!--    <script src="https://cdn.jsdelivr.net/npm/go-board@latest"></script>-->
+<script src="http://localhost:8080/static/playground/js/bundle.js" type="module"></script>
+<!--<script src="{% static 'playground/js/bundle.js' %}" type="module"></script>-->
+
+
+    <script type="module" src="{% static 'playground/js/BoardController.js' %}"></script>
+    <script src="{% static 'playground/js/Board.js' %}"></script>
+</div>
+</body>
+</html>

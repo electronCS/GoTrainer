@@ -101,7 +101,9 @@ def pattern_search(pattern_template, pattern_turn, filepath, katago):
                         temp_board = [row[coor[1] - j: coor[1] - j + len(pattern[0])] for row in
                                       board[coor[0] - i: coor[0] - i + len(pattern)]]
                         if temp_board == pattern:
+
                             print(f"found pattern on move {move_num} in {filepath}")
+                            node.add_comment_text("found pattern");
 
                             displayboard = boards.Board(19)
                             for color, move in moves:
