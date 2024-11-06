@@ -1,0 +1,34 @@
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.button-custom {
+    background-color: #f0f0f0; /* Light gray */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.button-custom:hover {
+    background-color: #ddd; /* Slightly darker gray */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+}
+
+.button-custom:active {
+    background-color: #ccc; /* Even darker for active state */
+}
+
+.button-custom svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor; /* Uses the color of the text */
+}

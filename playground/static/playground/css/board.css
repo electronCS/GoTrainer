@@ -36,6 +36,25 @@
             border-radius: 50%;
             transform: translate(-50%, -50%); /* Center the dot on the intersection */
         }
+        .label2 {
+            position: absolute;
+            font-weight: bold;
+            width: 30px;
+            height: 30px;
+            line-height: 30px; /* Center text vertically */
+            text-align: center; /* Center text horizontally */
+            transform: translate(-50%, -50%);
+            border-radius: 4px;
+            z-index: 10;
+        }
+        .circle {
+            border: 2px solid currentColor; /* Circle border matches the color of the stone */
+            border-radius: 50%; /* Make it a circle */
+            width: 20px; /* Adjust size as needed */
+            height: 20px; /* Adjust size as needed */
+            background-color: transparent; /* Transparent background for the circle */
+            box-sizing: border-box; /* Ensure the border doesn't affect size */
+        }
 
         .black { /* Black stone */
             background-color: black;

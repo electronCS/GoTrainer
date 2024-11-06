@@ -33,7 +33,9 @@ def display_board(request):
     return render_board(request, board_size, final_board_state)
 
 def display_board_controller(request):
-    file_path = "goTrainer/go4go_collection/__go4go_19410518_Kato-Shin_Sekiyama-Riichi.sgf"  # Update this to your actual SGF file path
+    # file_path = "goTrainer/go4go_collection/__go4go_19410518_Kato-Shin_Sekiyama-Riichi.sgf"  # Update this to your actual SGF file path
+    file_path = "goTrainer/test.sgf"  # Update this to your actual SGF file path
+
     sgf_string = get_sgf_string(file_path)
     print("sgf string in backend is ", sgf_string)
     context = {
