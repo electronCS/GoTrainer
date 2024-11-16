@@ -5,6 +5,15 @@
     margin-top: 10px;
 }
 
+.variation-tree-container {
+  width: 50%; /* Adjust to your preferred size */
+  height: 200px; /* Adjust to your preferred size */
+  overflow: auto; /* Enable scrolling */
+  border: 1px solid #ccc; /* Optional: Add a border to distinguish the scrollable area */
+  position: relative;
+}
+
+
 .button-custom {
     background-color: #f0f0f0; /* Light gray */
     border: 1px solid #ccc;

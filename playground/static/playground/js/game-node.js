@@ -1,10 +1,16 @@
 import { parseCoordinates } from './utils.js';
 
 export class Node {
-    constructor(props, parent = null) {
+    constructor(props, parent = null, moveNumber) {
         this.props = props;         // The properties (like B, W, etc.) of this node
         this.parent = parent;       // Reference to the parent node
         this.children = [];         // Array of children nodes
+        this.currentChildIndex = 0; // next active child in variation tree
+        this.isMoveNode = !!(props.B || props.W);
+        if (this.isMoveNode) {
+            this.moveNumber = moveNumber; // Move number for this node
+        }
+
     }
 
     addChild(childNode) {
@@ -12,6 +18,18 @@ export class Node {
         this.children.push(childNode);
     }
 
+    getNextChild() {
+        if (this.children.length > 0) {
+            return this.children[this.currentChildIndex];
+        }
+        return null;
+    }
+
+    setNextChild(index) {
+        if (index >= 0 && index < this.children.length) {
+            this.currentChildIndex = index;
+        }
+    }
 
     print() {
         const parseProps = (props) => {

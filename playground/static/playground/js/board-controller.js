@@ -7,13 +7,6 @@ import './variation-tree.js'; // Import the new component
 Vue.component('go-board-controller', {
     template: `
         <div class="board-controller">
-<!--            &lt;!&ndash; Controls &ndash;&gt;-->
-<!--            <div class="controls">-->
-<!--                <button @click="previousMove">Previous Move</button>-->
-<!--                <button @click="nextMove">Next Move</button>-->
-<!--&lt;!&ndash;                <button @click="resetBoard">Reset</button>&ndash;&gt;-->
-<!--            </div>-->
-
             <!-- Go Board Component -->
             <go-board
                 :initial-board-state="currentBoardState"
@@ -76,8 +69,8 @@ Vue.component('go-board-controller', {
             this.updateBoardState();
         },
 
-        convertSgfToNode(sgfData, parent = null) {
-            const node = new Node(sgfData.props, parent);
+        convertSgfToNode(sgfData, parent = null, moveNumber = 0) {
+            const node = new Node(sgfData.props, parent, moveNumber);
             // console.log("sgf data props is " + sgfData.props)
 
             if (sgfData.props.LB) {
@@ -96,7 +89,12 @@ Vue.component('go-board-controller', {
 
             if (sgfData.childs) {
                 sgfData.childs.forEach(childData => {
-                    const childNode = this.convertSgfToNode(childData, node);
+                    const isChildMoveNode = !!(childData.props.B || childData.props.W);
+                    // Increment moveNumber only for child move nodes
+                    const childMoveNumber = isChildMoveNode ? moveNumber + 1 : moveNumber;
+
+                    // Convert the child and add it to the current node
+                    const childNode = this.convertSgfToNode(childData, node, childMoveNumber);
                     node.addChild(childNode);
                 });
             }
@@ -112,7 +110,8 @@ Vue.component('go-board-controller', {
 
         nextMove() {
             if (this.currentNode && this.currentNode.children.length > 0) {
-                this.currentNode = this.currentNode.children[0]; // Move to the next node in the main line
+                // this.currentNode = this.currentNode.children[0]; // Move to the next node in the main line
+                this.currentNode = this.currentNode.getNextChild();
                 console.log("Moved to next node:", this.currentNode.print());
                 this.updateBoardState();
                 // this.scale += 0.1;
@@ -192,6 +191,13 @@ Vue.component('go-board-controller', {
                 if (node.props) {
                     moves.push(node.props);  // Add each node's move to the moves array
                 }
+                if (node.parent) {
+                    const index = node.parent.children.indexOf(node);
+                    if (index !== -1) {
+                        node.parent.setNextChild(index); // Update currentChildIndex
+                    }
+                }
+
                 if (node === this.rootNode) {
                     break;  // Stop when we reach the root node
                 }
