@@ -116,30 +116,62 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
     print(args)
 
+
+    def findbest(moveInfo):
+        max_score = -999
+        max_move = ''
+        min_score = 999
+        min_move = ''
+        move1 = None
+
+        for move in moveInfo:
+            if move['scoreLead'] > max_score:
+                max_score = move['scoreLead']
+                max_move = move['move']
+                move1 = move
+
+            if move['scoreLead'] < min_score:
+                min_score = move['scoreLead']
+                min_move = move['move']
+        print("best", max_score, max_move)
+        print("all info is ", move1)
+        print("worst", min_score, min_move)
+
+
     with open("katago_result.pkl", "rb") as f:
         loaded_result = pickle.load(f)
         print(len(loaded_result["moveInfos"]))
+
+        findbest(loaded_result["moveInfos"])
         print(loaded_result["moveInfos"][0])
 
-    sys.exit()
-    # katago = KataGo(args["katago_path"], args["config_path"], args["model_path"])
 
     board = sgfmill.boards.Board(19)
-    komi = 6.5
+    komi = 7.5
     moves = [("b",(3,3))]
+    moves = [("b", (3, 3)), ("w", (15, 3))]
 
     displayboard = board.copy()
     for color, move in moves:
         if move != "pass":
             row,col = move
             displayboard.play(row,col,color)
-    print(sgfmill.ascii_boards.render_board(displayboard))
+    # print(sgfmill.ascii_boards.render_board(displayboard))
 
     print("Query result: ")
 
-    run = False
+    run = True
     if run:
+        katago = KataGo(args["katago_path"], args["config_path"], args["model_path"])
+        moves = [("b", (3, 3))]
         result = katago.query(board, moves, komi)
+        sgfmill.ascii_boards.render_board(board)
+        findbest(result["moveInfos"])
+        print("after white's move\n\n")
+        moves = [("b", (3, 3)), ("w", (15, 3))]
+        result = katago.query(board, moves, komi)
+
+        findbest(result["moveInfos"])
 
         with open("katago_result.pkl", "wb") as f:
             pickle.dump(result, f)

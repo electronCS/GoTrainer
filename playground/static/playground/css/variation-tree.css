@@ -26,7 +26,7 @@
 }
 
 .move.current {
-    border: 2px solid red;
+    border: 2px solid blue;
     background-color: #ffe4b5;
 }
 

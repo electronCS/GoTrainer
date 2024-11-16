@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: './playground/static/playground/js/BoardController.js', // Update with your JavaScript entry point
+    entry: './playground/static/playground/js/board-controller.js', // Update with your JavaScript entry point
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist'), // Path to write bundle.js during build
