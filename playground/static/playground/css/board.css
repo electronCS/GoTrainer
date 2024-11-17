@@ -1,6 +1,5 @@
         .board-container {
-                width: 620px; /* Fixed width matching the board */
-
+            width: 620px; /* Fixed width matching the board */
             display: grid;
             grid-template-columns: 40px 1fr 40px; /* Left labels, Board, Right labels */
             grid-template-rows: 40px 1fr 40px;    /* Top labels, Board, Bottom labels */
@@ -9,6 +8,7 @@
             background-color: #f5deb3;
             border: 2px solid black;
             transform-origin: top left; /* Ensures transformations start from top-left */
+            isolation: isolate;
         }
         .board {
             padding-top: 2px;
@@ -69,6 +69,8 @@
             z-index: 1;
         }
         .label {
+              /*font-family: Helvetica, Arial, sans-serif;*/
+
             font-size: 14px;
             text-align: center;
             user-select: none;

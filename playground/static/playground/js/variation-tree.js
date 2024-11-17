@@ -5,6 +5,8 @@ import "./variation-tree-node.js";
 
 Vue.component('variation-tree', {
     template: `
+        <div class="variation-tree-container">
+
       <svg :width="svgWidth" :height="svgHeight" class="variation-tree-svg">
         <!-- Draw connectors (links) -->
         <g>
@@ -33,6 +35,7 @@ Vue.component('variation-tree', {
         </g>
           
       </svg>
+        </div>
     `,
     props: {
         rootNode: Object,

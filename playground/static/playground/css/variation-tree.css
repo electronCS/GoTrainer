@@ -1,3 +1,4 @@
+
 .variation-tree {
     margin-left: 20px; /* Indent children */
     position: relative;
@@ -7,29 +8,6 @@
     position: relative;
     display: flex;
     align-items: center;
-}
-
-.tree-link {
-  stroke: #000;
-  stroke-width: 1px;
-  opacity: 0.8; /* Slight transparency for links, if desired */
-}
-
-.tree-nodes {
-  isolation: isolate; /* Ensures nodes render above connectors */
-}
-
-
-.node-label {
-    cursor: pointer;
-    text-anchor: middle;
-    font-size: 12px;
-    fill: #000;
-
-}
-.node-label.active-branch {
-    font-weight: bold;
-    /*fill: #006400; !* Dark green for active branch labels *!*/
 }
 
 .move {
@@ -79,6 +57,18 @@
     border-left: 1px solid #000;
 }
 
+.variation-tree-container {
+  width: 100%; /* Adjust to your preferred size */
+  height: 300px; /* Adjust to your preferred size */
+  overflow: auto; /* Enable scrolling */
+  border: 1px solid #ccc; /* Optional: Add a border to distinguish the scrollable area */
+  position: relative;
+}
+
+.variation-tree-svg {
+  display: block; /* Prevent inline SVG elements from adding extra space */
+}
+
 .variation-tree:first-child .node-container::before {
     border-top: none; /* Remove top connector for the root node */
 }
@@ -86,3 +76,4 @@
 .variation-tree:first-child .node-container::after {
     border-left: none; /* Remove left connector for the root node */
 }
+

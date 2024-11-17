@@ -109,7 +109,6 @@ Vue.component('go-board',{
                 </div>
             </div>
         
-        
         </div>`,
     data() {
         return {

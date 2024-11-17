@@ -4,15 +4,36 @@
     gap: 10px;
     margin-top: 10px;
 }
-
-.variation-tree-container {
-  width: 50%; /* Adjust to your preferred size */
-  height: 200px; /* Adjust to your preferred size */
-  overflow: auto; /* Enable scrolling */
-  border: 1px solid #ccc; /* Optional: Add a border to distinguish the scrollable area */
-  position: relative;
+/* Wrapper for two columns */
+.columns {
+    display: flex;
+    flex-direction: row; /* Align items side by side */
+    height: 100%; /* Full height for the layout */
+    width: 100%; /* Full width */
 }
 
+/* First Column: Board and Controls */
+.first-column {
+    display: flex;
+    flex-direction: column; /* Stack board and controls vertically */
+    flex: 1; /* Take proportional space */
+    align-items: center; /* Center horizontally */
+    padding: 10px; /* Add some padding */
+    border-right: 1px solid #ccc; /* Optional: Add a dividing line */
+}
+
+/* Second Column: Variation Tree */
+.second-column {
+    display: flex;
+    flex: 1; /* Take proportional space */
+    padding: 10px; /* Add padding */
+}
+
+.board-container-wrapper {
+    display: block; /* Prevent Flexbox from interfering */
+    width: 100%; /* Adjust to fit your board size */
+    height: auto; /* Let the board size itself */
+}
 
 .button-custom {
     background-color: #f0f0f0; /* Light gray */

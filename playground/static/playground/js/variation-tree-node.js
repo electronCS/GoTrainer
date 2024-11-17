@@ -15,7 +15,7 @@ Vue.component('variation-tree-node', {
         <circle
           :cx="x"
           :cy="y"
-          :r="16"
+          :r="15"
           class="node-background"
         />
         <circle
