@@ -1,43 +1,110 @@
 
 
-/* Wrapper for the board controller */
-.board-controller {
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Full height container */
-}
+/*!* Wrapper for the board controller *!*/
+/*.board-controller {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    height: 100%; !* Full height container *!*/
+/*}*/
 
-/* Main content: board and variation tree side-by-side */
-.main-content {
-    display: flex;
-    flex: 1; /* Allow the main content to grow and take available space */
-}
+/*!* Main content: board and variation tree side-by-side *!*/
+/*.main-content {*/
+/*    display: flex;*/
+/*    flex: 1; !* Allow the main content to grow and take available space *!*/
+/*}*/
 
-/* Board container */
-.board-container {
-    display: flex;
-    flex-direction: column;
-    width: 50%; /* Adjust width as needed */
-    align-items: center; /* Center the board and controls horizontally */
-    justify-content: flex-start; /* Align items at the top */
-    padding: 10px; /* Add some padding */
-}
+/*!* Board container *!*/
+/*.board-container {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    width: 50%; !* Adjust width as needed *!*/
+/*    align-items: center; !* Center the board and controls horizontally *!*/
+/*    justify-content: flex-start; !* Align items at the top *!*/
+/*    padding: 10px; !* Add some padding *!*/
+/*}*/
 
-/* Variation tree container */
-.variation-tree-container {
-    width: 50%; /* Takes the right half */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scrolling */
-    border: 1px solid #ccc; /* Optional border for distinction */
-    padding: 10px; /* Add padding for content */
-}
+/*!* Variation tree container *!*/
+/*.variation-tree-container {*/
+/*    width: 50%; !* Takes the right half *!*/
+/*    height: 100%; !* Full height *!*/
+/*    overflow: auto; !* Enable scrolling *!*/
+/*    border: 1px solid #ccc; !* Optional border for distinction *!*/
+/*    padding: 10px; !* Add padding for content *!*/
+/*}*/
 
-/* Controls Panel */
+/*!* Controls Panel *!*/
+/*.controls {*/
+/*    display: flex;*/
+/*    justify-content: center; !* Center the buttons *!*/
+/*    gap: 10px; !* Space between buttons *!*/
+/*    margin-top: 20px; !* Space above the controls *!*/
+/*}*/
+
+/*.button-custom {*/
+/*    background-color: #f0f0f0; !* Light gray *!*/
+/*    border: 1px solid #ccc;*/
+/*    border-radius: 5px;*/
+/*    padding: 10px 15px;*/
+/*    font-size: 18px;*/
+/*    cursor: pointer;*/
+/*    transition: background-color 0.3s, box-shadow 0.3s;*/
+/*    display: inline-flex;*/
+/*    align-items: center;*/
+/*    justify-content: center;*/
+/*}*/
+
+/*.button-custom:hover {*/
+/*    background-color: #ddd; !* Slightly darker gray *!*/
+/*    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); !* Subtle shadow *!*/
+/*}*/
+
+/*.button-custom:active {*/
+/*    background-color: #ccc; !* Even darker for active state *!*/
+/*}*/
+
+/*.button-custom svg {*/
+/*    width: 20px;*/
+/*    height: 20px;*/
+/*    fill: currentColor; !* Uses the color of the text *!*/
+/*}*/
+
+
+
 .controls {
     display: flex;
-    justify-content: center; /* Center the buttons */
-    gap: 10px; /* Space between buttons */
-    margin-top: 20px; /* Space above the controls */
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+/* Wrapper for two columns */
+.columns {
+    display: flex;
+    flex-direction: row; /* Align items side by side */
+    height: 100%; /* Full height for the layout */
+    width: 100%; /* Full width */
+}
+
+/* First Column: Board and Controls */
+.first-column {
+    display: flex;
+    flex-direction: column; /* Stack board and controls vertically */
+    flex: 1; /* Take proportional space */
+    align-items: center; /* Center horizontally */
+    padding: 10px; /* Add some padding */
+    border-right: 1px solid #ccc; /* Optional: Add a dividing line */
+}
+
+/* Second Column: Variation Tree */
+.second-column {
+    display: flex;
+    flex: 1; /* Take proportional space */
+    padding: 10px; /* Add padding */
+}
+
+.board-container-wrapper {
+    display: block; /* Prevent Flexbox from interfering */
+    width: 100%; /* Adjust to fit your board size */
+    height: auto; /* Let the board size itself */
 }
 
 .button-custom {

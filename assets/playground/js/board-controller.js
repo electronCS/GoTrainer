@@ -3,43 +3,46 @@ import Board from '@sabaki/go-board';  // Correctly import the Board class from 
 import { parseCoordinates } from './utils.js';
 import './variation-tree.js'; // Import the new component
 // import VariationTree from './components/VariationTree.vue';
+import '../css/board.css';
+import '../css/board-controller.css';
+import '../css/variation-tree.css';
+import '../css/variation-tree-node.css';
 
 Vue.component('go-board-controller', {
     template: `
         <div class="board-controller">
-<!--            &lt;!&ndash; Controls &ndash;&gt;-->
-<!--            <div class="controls">-->
-<!--                <button @click="previousMove">Previous Move</button>-->
-<!--                <button @click="nextMove">Next Move</button>-->
-<!--&lt;!&ndash;                <button @click="resetBoard">Reset</button>&ndash;&gt;-->
-<!--            </div>-->
-
-            <!-- Go Board Component -->
-            <go-board
-                :initial-board-state="currentBoardState"
-                :current-node="currentNode"
-                :translate-x="translateX"
-                :translate-y="translateY"
-                :scale="scale">
-            </go-board>
-
-            <div class="controls">
-                <button class="button-custom" @click="goToStart"><i class="fas fa-fast-backward"></i></button>
-                <button class="button-custom" @click="goBack10Moves"><i class="fas fa-step-backward"></i></button>
-                <button class="button-custom" @click="previousMove"><i class="fas fa-chevron-left"></i></button>
-                <button class="button-custom" @click="nextMove"><i class="fas fa-chevron-right"></i></button>
-                <button class="button-custom" @click="goForward10Moves"><i class="fas fa-step-forward"></i></button>
-                <button class="button-custom" @click="goToEnd"><i class="fas fa-fast-forward"></i></button>
-            </div>
-            
-            <!-- Variation Tree -->
-            <div class="variation-tree-container">
-                <variation-tree
-                    :root-node="rootNode"
-                    :current-node="currentNode"
-                    @select-node="navigateToNode"
-                ></variation-tree>
-
+            <div class="columns">
+                <!-- First Column: Board and Controls -->
+                <div class="first-column">
+                    <div class="board-container-wrapper">
+                        <go-board
+                            :initial-board-state="currentBoardState"
+                            :current-node="currentNode"
+                            :translate-x="translateX"
+                            :translate-y="translateY"
+                            :scale="scale">
+                        </go-board>
+                        <div class="controls">
+                            <button class="button-custom" @click="goToStart"><i class="fas fa-fast-backward"></i></button>
+                            <button class="button-custom" @click="goBack10Moves"><i class="fas fa-step-backward"></i></button>
+                            <button class="button-custom" @click="previousMove"><i class="fas fa-chevron-left"></i></button>
+                            <button class="button-custom" @click="nextMove"><i class="fas fa-chevron-right"></i></button>
+                            <button class="button-custom" @click="goForward10Moves"><i class="fas fa-step-forward"></i></button>
+                            <button class="button-custom" @click="goToEnd"><i class="fas fa-fast-forward"></i></button>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- Second Column: Variation Tree -->
+                <div class="second-column">
+                    <div class="variation-tree-container">
+                        <variation-tree
+                            :root-node="rootNode"
+                            :current-node="currentNode"
+                            @select-node="navigateToNode">
+                        </variation-tree>
+                    </div>
+                </div>
             </div>
         </div>
     `,

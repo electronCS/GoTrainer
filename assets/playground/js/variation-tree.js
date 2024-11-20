@@ -160,7 +160,7 @@ Vue.component('variation-tree', {
 
         assignPositions(node, x, y, horizontal) {
 
-            if (!horizontal && this.yMap.get(y) == x) {
+            if (!horizontal && this.yMap.get(y) <= x) {
                 this.assignPositions(node, x, y + 1, horizontal)
                 return;
             }
@@ -178,6 +178,9 @@ Vue.component('variation-tree', {
             if (!this.yMap.has(y)) this.yMap.set(y, Infinity);
             let oldMaxY = this.yMap.get(y);
             this.yMap.set(y, Math.min(this.yMap.get(y), x));
+
+            this.updateYMap(x, y);
+
 
             // Recursively position children
             if (node.children && node.children.length > 0) {
@@ -199,12 +202,17 @@ Vue.component('variation-tree', {
                 for (let i = 1; i < node.children.length; i++) {
                     const child = node.children[i];
                     let nextY = y + increment + i
-                    if (!this.yMap.has(nextY)) this.yMap.set(nextY, Infinity);
-                    // this.yMap.set(nextY, Math.min(this.yMap.get(nextY), x + 1));
-                    this.yMap.set(nextY - 1, Math.min(this.yMap.get(nextY), x));
-                    // console.log ("setting ymap of " + (y + increment + i) + " to " + (Math.min(this.yMap.get(y + increment + i), x + 1)))
                     this.assignPositions(child, x + 1, nextY, false);
                 }
+            }
+        },
+
+        updateYMap(x, y) {
+            for (let z = 1; z < y; z++) {
+                if (!this.yMap.has(y - z)) this.yMap.set(y - z, Infinity);
+
+                this.yMap.set(y - z, Math.min(this.yMap.get(y - z), x - z));
+                console.log ("on " + x + " " + y + ", setting ymap of " + (y - z) + " to " + Math.min(this.yMap.get(y - z), x - z + 1));
             }
         },
 
