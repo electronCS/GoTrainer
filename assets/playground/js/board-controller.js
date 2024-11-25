@@ -2,11 +2,13 @@ import { Node } from './game-node.js';
 import Board from '@sabaki/go-board';  // Correctly import the Board class from @sabaki/go-board
 import { parseCoordinates } from './utils.js';
 import './variation-tree.js'; // Import the new component
+import './board'
 // import VariationTree from './components/VariationTree.vue';
 import '../css/board.css';
 import '../css/board-controller.css';
 import '../css/variation-tree.css';
 import '../css/variation-tree-node.css';
+// import SGF from "@babel/core/lib/parse";
 
 Vue.component('go-board-controller', {
     template: `
@@ -20,9 +22,13 @@ Vue.component('go-board-controller', {
                             :current-node="currentNode"
                             :translate-x="translateX"
                             :translate-y="translateY"
-                            :scale="scale">
+                            :scale="scale"
+                            :ghostMode="ghostMode"
+                            @board-clicked="handleBoardClick">
                         </go-board>
-                        <div class="controls">
+                      
+                    </div>
+                  <div class="controls">
                             <button class="button-custom" @click="goToStart"><i class="fas fa-fast-backward"></i></button>
                             <button class="button-custom" @click="goBack10Moves"><i class="fas fa-step-backward"></i></button>
                             <button class="button-custom" @click="previousMove"><i class="fas fa-chevron-left"></i></button>
@@ -30,7 +36,6 @@ Vue.component('go-board-controller', {
                             <button class="button-custom" @click="goForward10Moves"><i class="fas fa-step-forward"></i></button>
                             <button class="button-custom" @click="goToEnd"><i class="fas fa-fast-forward"></i></button>
                         </div>
-                    </div>
                 </div>
         
                 <!-- Second Column: Variation Tree -->
@@ -58,14 +63,98 @@ Vue.component('go-board-controller', {
             translateX: 0,
             translateY: 0,
             scale: 1,
+            boardBaseSize: 624, // Base size of the board at scale 1 (e.g., 19x19 with default cellSize)
+            ghostMode: 'B', // Default to Black stones
+
         };
     },
     mounted() {
         if (window.sgfString) {
             this.loadSgf(window.sgfString);
+            console.log("sgf data is " + this.sgfData);
         }
+        // this.calculateScale(); // Calculate initial scale
+        // window.addEventListener('resize', this.calculateScale); // Update scale on window resize
+
+    },
+    beforeDestroy() {
+        window.removeEventListener('resize', this.calculateScale);
     },
     methods: {
+        handleBoardClick({ x, y }) {
+            console.log(`Clicked on (${x}, ${y})`);
+
+            // Convert board coordinates to SGF coordinates (e.g., A1 = 'aa')
+            const sgfX = String.fromCharCode(97 + x); // 'a' + x
+            const sgfY = String.fromCharCode(97 + y); // 'a' + y
+            const sgfCoord = `${sgfX}${sgfY}`;
+            console.log(`SGF coordinate: ${sgfCoord}`);
+
+            // Check if a child node exists with this move
+            const existingChild = this.currentNode.children.find(
+                child => child.props.B === sgfCoord || child.props.W === sgfCoord
+            );
+
+            if (existingChild) {
+                // Navigate to the existing node
+                // this.currentNode = existingChild;
+                this.navigateToNode(existingChild)
+
+                console.log(`Navigated to existing node at ${sgfCoord}`);
+            } else {
+                // Determine the color of the next move
+                const color = this.determineNextColor();
+
+                // Create a new Node instance
+                const newNode = new Node(
+                    { [color]: sgfCoord }, // Props for the new node (e.g., { B: 'aa' })
+                    this.currentNode, // Set parent to currentNode
+                    this.currentNode.isMoveNode ? this.currentNode.moveNumber + 1 : 1 // Increment move number
+                );
+
+                // Add the new node to the current node
+                this.currentNode.addChild(newNode);
+
+                // Update the current node
+                this.navigateToNode(newNode)
+                // this.currentNode = newNode;
+
+                console.log(`Added new node: ${JSON.stringify(newNode.props)}`);
+            }
+
+            // Update board state and reflect changes on the board
+            this.updateBoardState();
+        },
+
+        determineNextColor() {
+            // Determine the color of the next move based on the current node
+            const parentProps = this.currentNode.props;
+            if (parentProps.W || (!parentProps.W && !parentProps.B)) {
+                this.ghostMode = 'B';
+                return 'B'; // If the parent is a Black move or root, the next is White
+            }
+            this.ghostMode = 'W';
+            return 'W'; // Otherwise, the next move is Black
+        },
+
+
+        calculateScale() {
+            // Get the size of the parent column
+            const firstColumn = this.$el.querySelector('.first-column');
+            if (firstColumn) {
+                const availableWidth = firstColumn.clientWidth;
+                const availableHeight = firstColumn.clientHeight;
+
+                console.log("available width is " + availableWidth + " and available height is " + availableHeight);
+
+                // Calculate scale based on the smaller of width or height
+                const scaleWidth = (availableWidth * 0.98)/ this.boardBaseSize;
+                const scaleHeight = availableHeight / this.boardBaseSize;
+                this.scale = Math.min(scaleWidth, scaleHeight); // Maintain aspect ratio
+                console.log("Updated scale:", this.scale);
+            }
+        },
+
         loadSgf(sgfString) {
             console.log("about to parse sgf which is " + sgfString);
 
@@ -81,7 +170,8 @@ Vue.component('go-board-controller', {
 
         convertSgfToNode(sgfData, parent = null, moveNumber = 0) {
             const node = new Node(sgfData.props, parent, moveNumber);
-            // console.log("sgf data props is " + sgfData.props)
+            // console.log ()
+            console.log("sgf data props is " + JSON.stringify(sgfData.props, null, 2));
 
             if (sgfData.props.LB) {
                 // console.log("props has LB")
@@ -116,6 +206,7 @@ Vue.component('go-board-controller', {
         navigateToNode(node) {
             this.currentNode = node;
             this.updateBoardState();
+
         },
 
         nextMove() {
@@ -124,6 +215,7 @@ Vue.component('go-board-controller', {
                 this.currentNode = this.currentNode.getNextChild();
                 console.log("Moved to next node:", this.currentNode.print());
                 this.updateBoardState();
+
                 // this.scale += 0.1;
             }
         },
@@ -132,6 +224,7 @@ Vue.component('go-board-controller', {
                 this.currentNode = this.currentNode.parent; // Move to the previous node (parent)
                 console.log("Moved to previous node:", this.currentNode.print());
                 this.updateBoardState();
+
             }
         },
         goToStart() {
@@ -153,7 +246,7 @@ Vue.component('go-board-controller', {
         goForward10Moves() {
             let count = 0;
             while (this.currentNode && this.currentNode.children.length > 0 && count < 10) {
-                this.currentNode = this.currentNode.children[0]; // Move to the next node in the main line
+                this.currentNode = this.currentNode.getNextChild(); // Move to the next node in the main line
                 count++;
             }
             console.log(`Moved forward ${count} moves.`);
@@ -161,13 +254,15 @@ Vue.component('go-board-controller', {
         },
         goToEnd() {
             while (this.currentNode && this.currentNode.children.length > 0) {
-                this.currentNode = this.currentNode.children[0]; // Move to the next node in the main line
+                this.currentNode = this.currentNode.getNextChild(); // Move to the next node in the main line
             }
             console.log("Moved to end of the game.");
             this.updateBoardState();
         },
 
         updateBoardState() {
+            this.ghostMode = this.determineNextColor();
+
             // Reset the board
             this.board = Board.fromDimensions(19);
             this.labels = []; // Keep track of annotations separately

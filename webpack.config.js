@@ -4,7 +4,7 @@ module.exports = {
     entry: './assets/playground/js/board-controller.js', // Update with your JavaScript entry point
     output: {
         filename: 'bundle.js',
-        path: path.resolve(__dirname, 'dist'), // Path to write bundle.js during build
+        path: path.resolve(__dirname, 'playground/static/playground/js'), // Path to write bundle.js during build
         publicPath: '/static/playground/js/', // Public URL where the bundle is served from
 
     },

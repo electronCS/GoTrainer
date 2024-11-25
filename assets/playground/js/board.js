@@ -1,16 +1,24 @@
 /** @typedef {import('vue/types/vue').default} Vue */
-import { parseCoordinates } from './utils.js';
+import {parseCoordinates} from './utils.js';
 
 const appElement = document.getElementById('app');
-const boardSize = parseInt(appElement.getAttribute('data-board-size'));
+// const boardSize = parseInt(appElement.getAttribute('data-board-size'));
 // const finalBoardState = JSON.parse(document.getElementById('final-board-state').textContent);
 
+/*
+<div class="board-container"
+:style="{
+transform: \`translate(\${translateX}px, \${translateY}px) scale(\${scale})\`
+}">
+ */
 Vue.component('go-board',{
     template: `        <!-- Board Container with Grid Layout -->
+
         <div class="board-container"
-             :style="{
-                 transform: \`translate(\${translateX}px, \${translateY}px) scale(\${scale})\`
-             }">
+             :style="{ transform: \`translate(\${translateX}px, \${translateY}px) scale(\${scale})\` }"
+             @mousemove="handleMouseMove"
+             @mouseleave="handleMouseLeave"
+             @click="handleMouseClick">
 
             <!-- Top Labels -->
             <div class="top-labels">
@@ -29,8 +37,8 @@ Vue.component('go-board',{
             <!-- Board -->
             <div class="board"
                  :style="{
-                     width: (board_size - 1) * 30 + 'px',
-                     height: (board_size - 1) * 30 + 'px',
+                     width: (board_size - 1) * cellSize + 'px',
+                     height: (board_size - 1) * cellSize + 'px',
                  }">
                 <!-- Grid Lines -->
                 <div
@@ -38,9 +46,9 @@ Vue.component('go-board',{
                     :key="'h' + i"
                     class="grid-line"
                     :style="{
-                        top: (i - 1) * 30 + 'px',
+                        top: (i - 1) * cellSize + 'px',
                         left: '0',
-                        width: (board_size - 1) * 30 + 'px',
+                        width: (board_size - 1) * cellSize + 'px',
                         height: '1px'
                     }">
                 </div>
@@ -49,10 +57,10 @@ Vue.component('go-board',{
                     :key="'v' + j"
                     class="grid-line"
                     :style="{
-                        left: (j - 1) * 30 + 'px',
+                        left: (j - 1) * cellSize + 'px',
                         top: '0',
                         width: '1px',
-                        height: (board_size - 1) * 30 + 'px'
+                        height: (board_size - 1) * cellSize + 'px'
                     }">
                 </div>
 
@@ -67,14 +75,23 @@ Vue.component('go-board',{
                     }">
                 </div>
               
+                <div v-if="hoveredPosition" 
+                     :class="['ghost-stone', 'ghost-stone-' + ghostMode]"
+                     :style="{ 
+                         left: hoveredPosition.x * cellSize + 'px',
+                         top: hoveredPosition.y * cellSize + 'px',
+                         // backgroundColor: ghostMode === 'B' ? 'black' : 'white',
+                         // borderColor: ghostMode === 'W' ? 'black' : 'transparent'
+                     }"></div>
+              
                 <!-- Star Points -->
                 <div
                     v-for="(point, index) in starPoints"
                     :key="'star' + index"
                     class="star-point"
                     :style="{
-                        top:  point[1] * 30 + 'px',
-                        left: point[0] * 30 + 'px'
+                        top:  point[1] * cellSize + 'px',
+                        left: point[0] * cellSize + 'px'
                     }">
                 </div>
                 
@@ -84,8 +101,8 @@ Vue.component('go-board',{
                     :key="'label-' + index"
                     :class="['label2', { circle: label.isCircle }]"
                     :style="{
-                        top: label.row  * 30 + 'px',
-                        left: label.col * 30 + 'px',
+                        top: label.row  * cellSize + 'px',
+                        left: label.col * cellSize + 'px',
                         color: label.color,
                         backgroundColor: label.background // Set the background color dynamically
                     }">
@@ -108,8 +125,6 @@ Vue.component('go-board',{
                     {{ letter }} 
                 </div>
             </div>
-        
-        
         </div>`,
     data() {
         return {
@@ -123,7 +138,10 @@ Vue.component('go-board',{
             ],
 
             letters: ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T'],
-            numbers: Array.from({length: 19}, (_, i) => 19 - i)
+            numbers: Array.from({length: 19}, (_, i) => 19 - i),
+            cellSize: 30,
+            hoveredPosition: null // Track the hovered position
+
         };
     },
     props: {
@@ -146,17 +164,32 @@ Vue.component('go-board',{
         scale: {
             type: Number,
             default: 1
+        },
+        ghostMode: {
+            type: String,
+            default: 'B' // Default to Black stones
         }
 
     },
     mounted() {
-        console.log("the initialBoardState upon mount is " + this.initialBoardState);
+
+        // this.updateCellSize();
+
+        console.log("cell size is " + this.cellSize);
+        console.log("board size is " + this.board_size);
+        // this.$forceUpdate();
+        // this.updateCellSize();
+        // window.addEventListener('resize', this.updateCellSize);
+
+        // console.log("the initialBoardState upon mount is " + this.initialBoardState);
+    },
+    beforeDestroy() {
+        window.removeEventListener('resize', this.updateCellSize);
     },
     watch: {
         initialBoardState: {
             handler(newVal, oldVal) {
                 this.generateStonePositions();
-
             },
             deep: true
         },
@@ -169,27 +202,58 @@ Vue.component('go-board',{
 
     },
 
-    // computed: {
-    //     stonePositions() {
-    //         console.log("recomputing stone positions")
-    //         const positions = [];
-    //         for (let row = 0; row < this.board_size; row++) {
-    //             for (let col = 0; col < this.board_size; col++) {
-    //                 let stone = this.initialBoardState[row][col];
-    //                 if (stone) {
-    //                     positions.push({
-    //                         color: stone.toLowerCase(),  // 'b' or 'w'
-    //                         top: (this.board_size - row - 1) * 30,  // Invert row
-    //                         left: col * 30
-    //                     });
-    //                 }
-    //             }
-    //         }
-    //         return positions;
-    //     }
-    // },
-
     methods: {
+    handleMouseMove(event) {
+        const rect = event.currentTarget.getBoundingClientRect(); // Board's position
+        const x = Math.floor((event.clientX - rect.left) / this.cellSize) - 1;
+        const y = Math.floor((event.clientY - rect.top) / this.cellSize) - 1;
+
+        // Ensure hover stays within the board bounds
+        if (x >= 0 && x < this.board_size && y >= 0 && y < this.board_size) {
+            // Check if there's an existing stone and ghostMode is 'B' or 'W'
+            if ((this.ghostMode === 'B' || this.ghostMode === 'W') && this.initialBoardState[y][x] !== 0) {
+                this.hoveredPosition = null; // Do not display ghost stone
+            } else {
+                this.hoveredPosition = { x, y }; // Set hovered position
+            }
+        } else {
+            this.hoveredPosition = null; // Reset if outside bounds
+        }
+    },
+    handleMouseLeave() {
+        this.hoveredPosition = null; // Clear hover state
+    },
+    handleMouseClick(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = Math.floor((event.clientX - rect.left) / this.cellSize) - 1;
+        const y = Math.floor((event.clientY - rect.top) / this.cellSize) - 1;
+
+        // Ensure the click is within board bounds
+        if (x >= 0 && x < this.board_size && y >= 0 && y < this.board_size) {
+            // Block clicks on existing stones if ghostMode is 'B' or 'W'
+            if ((this.ghostMode === 'B' || this.ghostMode === 'W') && this.initialBoardState[y][x] !== 0) {
+                console.log(`Click blocked at (${x}, ${y}) - Stone already exists.`);
+                return;
+            }
+
+            // Allow the click for other modes or empty positions
+            console.log(`Clicked coordinate: (${x}, ${y})`);
+            this.$emit('board-clicked', { x, y }); // Emit event with coordinates
+            this.hoveredPosition = null; // Clear hover state
+
+        }
+    },
+        updateCellSize() {
+            console.log("calling updateCellSize");
+            const container = this.$el; // Reference the current component's root element
+            if (container) {
+                const availableWidth = container.clientWidth;
+                 // Account for labels
+                this.cellSize = Math.floor(availableWidth / (this.board_size + 2));
+                console.log("cell size is " + this.cellSize);
+            }
+            // this.generateStonePositions();
+        },
         generateStonePositions() {
             console.log("Initial Board State:", this.initialBoardState);
 
@@ -201,9 +265,8 @@ Vue.component('go-board',{
                         let color = stone === 1 ? 'black' : 'white'; // Map 1 to 'black', -1 to 'white'
                         this.stonePositions.push({
                             color: color,
-                            // top: (this.board_size - row - 1) * 30, // Invert row
-                            top: row * 30,
-                            left: col * 30
+                            top: row * this.cellSize,
+                            left: col * this.cellSize
                         });
                     }
                 }
@@ -278,21 +341,9 @@ Vue.component('go-board',{
                     });
                 }
             }
-
             this.labels = labels;
-        },
-
-
-         zoomIn() {
-            this.scale += 0.1;
-        },
-        zoomOut() {
-            if (this.scale > 0.2) this.scale -= 0.1;
-        },
-        moveBoard(dx, dy) {
-            this.translateX += dx;
-            this.translateY += dy;
         }
+
     }
 
 })

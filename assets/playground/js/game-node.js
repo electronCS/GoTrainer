@@ -7,12 +7,11 @@ export class Node {
         this.children = [];         // Array of children nodes
         this.currentChildIndex = 0; // next active child in variation tree
         this.isMoveNode = !!(props.B || props.W);
-        console.log("isMoveNOde is " + this.isMoveNode);
+        // console.log("isMoveNOde is " + this.isMoveNode);
         if (this.isMoveNode) {
-            console.log("setting with moveNumber " + moveNumber);
+            // console.log("setting with moveNumber " + moveNumber);
             this.moveNumber = moveNumber; // Move number for this node
         }
-
     }
 
     addChild(childNode) {

@@ -26,11 +26,11 @@
     <h2>Board Size: 19</h2>
 
         <!-- Buttons -->
-    <button @click="zoomOut">Zoom Out</button>
-    <button @click="zoomIn">Zoom In</button>
-    <!--<button @click="$refs.goBoard.zoomOut()">Zoom Out</button>-->
-    <button @click="$refs.goBoard.moveBoard(30, 0)">Move Right</button>
-    <button @click="$refs.goBoard.moveBoard(-30, 0)">Move Left</button>
+{#    <button @click="zoomOut">Zoom Out</button>#}
+{#    <button @click="zoomIn">Zoom In</button>#}
+{#    <!--<button @click="$refs.goBoard.zoomOut()">Zoom Out</button>-->#}
+{#    <button @click="$refs.goBoard.moveBoard(30, 0)">Move Right</button>#}
+{#    <button @click="$refs.goBoard.moveBoard(-30, 0)">Move Left</button>#}
         <!-- Add Up and Down similarly -->
 
         <!-- Go Board Component -->
@@ -52,10 +52,6 @@
 
                 },
                 mounted() {
-                    // if (window.sgfString) {
-                    //     // consoel
-                    //     this.loadSgf(window.sgfString);
-                    // }
 
                 },
                 methods: {
@@ -83,15 +79,15 @@
 
 <!--    <script src="https://cdn.jsdelivr.net/npm/go-board@latest"></script>-->
 <script src="http://localhost:8080/static/playground/js/bundle.js" type="module"></script>
-<!--<script src="{% static 'playground/js/bundle.js' %}" type="module"></script>-->
-
-    <script src="{% static 'playground/js/utils.js' %}"></script>
-    <script type="module" src="{% static 'playground/js/BoardController.js' %}"></script>
-    <script type="module" src="{% static 'playground/js/Board.js' %}"></script>
-    <script src="{% static 'playground/js/variation-tree.js' %}"></script>
-    <script src="{% static 'playground/js/variation-tree-node.js' %}"></script>
-
-<!--    <script src="{% static 'playground/js/Board.js' %}"></script>-->
+{#<!--<script src="{% static 'playground/js/bundle.js' %}" type="module"></script>-->#}
+{##}
+{#    <script src="{% static 'playground/js/utils.js' %}"></script>#}
+{#    <script type="module" src="{% static 'playground/js/BoardController.js' %}"></script>#}
+{#    <script type="module" src="{% static 'playground/js/Board.js' %}"></script>#}
+{#    <script src="{% static 'playground/js/variation-tree.js' %}"></script>#}
+{#    <script src="{% static 'playground/js/variation-tree-node.js' %}"></script>#}
+{##}
+{#<!--    <script src="{% static 'playground/js/Board.js' %}"></script>-->#}
 </div>
 </body>
 </html>

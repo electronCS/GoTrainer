@@ -1,227 +1,138 @@
-        /*.board-container {*/
-        /*        width: 620px; !* Fixed width matching the board *!*/
 
-        /*    display: grid;*/
-        /*    grid-template-columns: 40px 1fr 40px; !* Left labels, Board, Right labels *!*/
-        /*    grid-template-rows: 40px 1fr 40px;    !* Top labels, Board, Bottom labels *!*/
-        /*    gap: 0; !* No gaps between grid cells *!*/
-        /*    padding: 0; !* Padding handled within label areas *!*/
-        /*    background-color: #f5deb3;*/
-        /*    border: 2px solid black;*/
-        /*    transform-origin: top left; !* Ensures transformations start from top-left *!*/
-        /*}*/
-        /*.board {*/
-        /*    padding-top: 2px;*/
-        /*    transform: scale(0.98);*/
-        /*    grid-column: 2;*/
-        /*    grid-row: 2;*/
-        /*    position: relative;*/
-        /*    background-color: transparent; !* Let container's background show *!*/
-        /*    border: none; !* Remove if unnecessary *!*/
-        /*    transition: transform 0.3s ease;*/
-        /*}*/
-        /*.stone {*/
-        /*    position: absolute;*/
-        /*    width: 28px;*/
-        /*    height: 28px;*/
-        /*    border-radius: 50%;*/
-        /*    z-index: 2;*/
-        /*    transform: translate(-50%, -50%); !* Centers the stone *!*/
-        /*}*/
-        /*.star-point {*/
-        /*    position: absolute;*/
-        /*    width: 10px;*/
-        /*    height: 10px;*/
-        /*    background-color: black;*/
-        /*    border-radius: 50%;*/
-        /*    transform: translate(-50%, -50%); !* Center the dot on the intersection *!*/
-        /*}*/
-        /*.label2 {*/
-        /*    position: absolute;*/
-        /*    font-weight: bold;*/
-        /*    width: 30px;*/
-        /*    height: 30px;*/
-        /*    line-height: 30px; !* Center text vertically *!*/
-        /*    text-align: center; !* Center text horizontally *!*/
-        /*    transform: translate(-50%, -50%);*/
-        /*    border-radius: 4px;*/
-        /*    z-index: 10;*/
-        /*}*/
-        /*.circle {*/
-        /*    border: 2px solid currentColor; !* Circle border matches the color of the stone *!*/
-        /*    border-radius: 50%; !* Make it a circle *!*/
-        /*    width: 20px; !* Adjust size as needed *!*/
-        /*    height: 20px; !* Adjust size as needed *!*/
-        /*    background-color: transparent; !* Transparent background for the circle *!*/
-        /*    box-sizing: border-box; !* Ensure the border doesn't affect size *!*/
-        /*}*/
+.board-container {
+    display: grid;
+    /*max-width: 100%; !* Prevent it from exceeding the parent's width *!*/
 
-        /*.black { !* Black stone *!*/
-        /*    background-color: black;*/
-        /*}*/
-        /*.white { !* White stone *!*/
-        /*    background-color: white;*/
-        /*    border: 1px solid black;*/
-        /*}*/
-        /*.grid-line {*/
-        /*    position: absolute;*/
-        /*    background-color: black;*/
-        /*    z-index: 1;*/
-        /*}*/
-        /*.label {*/
-        /*    font-size: 14px;*/
-        /*    text-align: center;*/
-        /*    user-select: none;*/
-        /*}*/
-        /*!* Top Labels *!*/
-        /*.top-labels {*/
-        /*    grid-row: 1;*/
-        /*    grid-column: 2;*/
-        /*    display: flex;*/
-        /*    justify-content: space-between;*/
-        /*    align-items: center;*/
+    grid-template-columns: 40px 1fr 40px; /* Left labels, Board, Right labels */
+    grid-template-rows: 40px 1fr 40px;    /* Top labels, Board, Bottom labels */
+    gap: 0; /* No gaps between grid cells */
+    padding: 0; /* Padding handled within label areas */
+    background-color: #f5deb3;
+    border: 2px solid black;
+    transform-origin: top left; /* Ensures transformations start from top-left */
+    isolation: isolate;
+}
+.board {
+    padding-top: 2px;
+    transform: scale(0.98);
+    /*width: 100%; !* Let it adjust to .board-container's width *!*/
 
-        /*}*/
-        /*!* Bottom Labels *!*/
-        /*.bottom-labels {*/
-        /*    grid-row: 3;*/
-        /*    grid-column: 2;*/
-        /*    display: flex;*/
-        /*    justify-content: space-between;*/
-        /*    align-items: center;*/
-        /*}*/
-        /*!* Left Labels *!*/
-        /*.left-labels {*/
-        /*    grid-row: 2;*/
-        /*    grid-column: 1;*/
-        /*    display: flex;*/
-        /*    flex-direction: column;*/
-        /*    justify-content: space-between;*/
-        /*    align-items: center;*/
+    grid-column: 2;
+    grid-row: 2;
+    position: relative;
+    background-color: transparent; /* Let container's background show */
+    border: none; /* Remove if unnecessary */
+    transition: transform 0.3s ease;
+}
+.ghost-stone {
+    position: absolute;
+    width: 28px; /* Match stone size */
+    height: 28px; /* Match stone size */
+    border-radius: 50%; /* Circular shape */
+    /*background-color: black; !* Hardcoded to black for now *!*/
+    /*opacity: 0.5; !* Make it translucent *!*/
+    transform: translate(-50%, -50%); /* Center the stone */
+    pointer-events: none; /* Allow mouse events to pass through */
+    z-index: 2;
+}
+.ghost-stone-B {
+    background-color: black; /* Hardcoded to black for now */
 
-        /*}*/
-        /*!* Right Labels *!*/
-        /*.right-labels {*/
-        /*    grid-row: 2;*/
-        /*    grid-column: 3;*/
-        /*    display: flex;*/
-        /*    flex-direction: column;*/
-        /*    justify-content: space-between;*/
-        /*    align-items: center;*/
+    opacity: 0.5;
+}
+.ghost-stone-W {
+    background-color: white; /* Hardcoded to black for now */
+    opacity: 0.8;
+}
+.stone {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    z-index: 2;
+    transform: translate(-50%, -50%); /* Centers the stone */
+}
+.star-point {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: black;
+    border-radius: 50%;
+    transform: translate(-50%, -50%); /* Center the dot on the intersection */
+}
+.label2 {
+    position: absolute;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    line-height: 30px; /* Center text vertically */
+    text-align: center; /* Center text horizontally */
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+    z-index: 10;
+}
+.circle {
+    border: 2px solid currentColor; /* Circle border matches the color of the stone */
+    border-radius: 50%; /* Make it a circle */
+    width: 20px; /* Adjust size as needed */
+    height: 20px; /* Adjust size as needed */
+    background-color: transparent; /* Transparent background for the circle */
+    box-sizing: border-box; /* Ensure the border doesn't affect size */
+}
 
-        /*}*/
+.black { /* Black stone */
+    background-color: black;
+}
+.white { /* White stone */
+    background-color: white;
+    border: 1px solid black;
+}
+.grid-line {
+    position: absolute;
+    background-color: black;
+    z-index: 1;
+}
+.label {
+      /*font-family: Helvetica, Arial, sans-serif;*/
 
-                .board-container {
-            width: 620px; /* Fixed width matching the board */
-            display: grid;
-            grid-template-columns: 40px 1fr 40px; /* Left labels, Board, Right labels */
-            grid-template-rows: 40px 1fr 40px;    /* Top labels, Board, Bottom labels */
-            gap: 0; /* No gaps between grid cells */
-            padding: 0; /* Padding handled within label areas */
-            background-color: #f5deb3;
-            border: 2px solid black;
-            transform-origin: top left; /* Ensures transformations start from top-left */
-            isolation: isolate;
-        }
-        .board {
-            padding-top: 2px;
-            transform: scale(0.98);
-            grid-column: 2;
-            grid-row: 2;
-            position: relative;
-            background-color: transparent; /* Let container's background show */
-            border: none; /* Remove if unnecessary */
-            transition: transform 0.3s ease;
-        }
-        .stone {
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            z-index: 2;
-            transform: translate(-50%, -50%); /* Centers the stone */
-        }
-        .star-point {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: black;
-            border-radius: 50%;
-            transform: translate(-50%, -50%); /* Center the dot on the intersection */
-        }
-        .label2 {
-            position: absolute;
-            font-weight: bold;
-            width: 30px;
-            height: 30px;
-            line-height: 30px; /* Center text vertically */
-            text-align: center; /* Center text horizontally */
-            transform: translate(-50%, -50%);
-            border-radius: 4px;
-            z-index: 10;
-        }
-        .circle {
-            border: 2px solid currentColor; /* Circle border matches the color of the stone */
-            border-radius: 50%; /* Make it a circle */
-            width: 20px; /* Adjust size as needed */
-            height: 20px; /* Adjust size as needed */
-            background-color: transparent; /* Transparent background for the circle */
-            box-sizing: border-box; /* Ensure the border doesn't affect size */
-        }
+    font-size: 14px;
+    text-align: center;
+    user-select: none;
+}
+/* Top Labels */
+.top-labels {
+    grid-row: 1;
+    grid-column: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-        .black { /* Black stone */
-            background-color: black;
-        }
-        .white { /* White stone */
-            background-color: white;
-            border: 1px solid black;
-        }
-        .grid-line {
-            position: absolute;
-            background-color: black;
-            z-index: 1;
-        }
-        .label {
-              /*font-family: Helvetica, Arial, sans-serif;*/
+}
+/* Bottom Labels */
+.bottom-labels {
+    grid-row: 3;
+    grid-column: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+/* Left Labels */
+.left-labels {
+    grid-row: 2;
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 
-            font-size: 14px;
-            text-align: center;
-            user-select: none;
-        }
-        /* Top Labels */
-        .top-labels {
-            grid-row: 1;
-            grid-column: 2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+}
+/* Right Labels */
+.right-labels {
+    grid-row: 2;
+    grid-column: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 
-        }
-        /* Bottom Labels */
-        .bottom-labels {
-            grid-row: 3;
-            grid-column: 2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        /* Left Labels */
-        .left-labels {
-            grid-row: 2;
-            grid-column: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-
-        }
-        /* Right Labels */
-        .right-labels {
-            grid-row: 2;
-            grid-column: 3;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-
-        }
+}

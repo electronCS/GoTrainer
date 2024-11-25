@@ -212,7 +212,7 @@ Vue.component('variation-tree', {
                 if (!this.yMap.has(y - z)) this.yMap.set(y - z, Infinity);
 
                 this.yMap.set(y - z, Math.min(this.yMap.get(y - z), x - z));
-                console.log ("on " + x + " " + y + ", setting ymap of " + (y - z) + " to " + Math.min(this.yMap.get(y - z), x - z + 1));
+                // console.log ("on " + x + " " + y + ", setting ymap of " + (y - z) + " to " + Math.min(this.yMap.get(y - z), x - z + 1));
             }
         },
 
