@@ -1,7 +1,11 @@
 const path = require('path');
+const { VueLoaderPlugin } = require('vue-loader');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = {
-    entry: './assets/playground/js/board-controller.js', // Update with your JavaScript entry point
+
+    entry: './assets/playground/js/main.js', // Update with your JavaScript entry point
+
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'playground/static/playground/js'), // Path to write bundle.js during build
@@ -39,8 +43,23 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader'], // Process CSS files
+            },
+                        {
+                test: /\.vue$/,
+                loader: 'vue-loader',
             }
 
         ]
+    },
+    plugins: [
+        new VueLoaderPlugin(), // Ensure this plugin is included
+        new BundleAnalyzerPlugin() // Add the analyzer plugin
+
+    ],
+    resolve: {
+        alias: {
+            vue$: 'vue/dist/vue.esm-bundler.js' // Required for Vue 3
+        },
+        extensions: ['*', '.js', '.vue', '.json']
     }
 };

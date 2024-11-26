@@ -46,8 +46,8 @@
 }
 .stone {
     position: absolute;
-    width: 28px;
-    height: 28px;
+    width: 29px;
+    height: 29px;
     border-radius: 50%;
     z-index: 2;
     transform: translate(-50%, -50%); /* Centers the stone */

@@ -1,132 +1,125 @@
-/** @typedef {import('vue/types/vue').default} Vue */
-import {parseCoordinates} from './utils.js';
+<template>
+    <div class="board-container"
+       @mousemove="handleMouseMove"
+       @mouseleave="handleMouseLeave"
+       @click="handleMouseClick">
 
-const appElement = document.getElementById('app');
-// const boardSize = parseInt(appElement.getAttribute('data-board-size'));
-// const finalBoardState = JSON.parse(document.getElementById('final-board-state').textContent);
+<!--                         :style="{ transform: \`translate(\${translateX}px, \${translateY}px) scale(\${scale})\` }"-->
 
-/*
-<div class="board-container"
-:style="{
-transform: \`translate(\${translateX}px, \${translateY}px) scale(\${scale})\`
-}">
- */
-Vue.component('go-board',{
-    template: `        <!-- Board Container with Grid Layout -->
+      <!-- Top Labels -->
+      <div class="top-labels">
+          <div class="label" v-for="letter in letters" :key="'top-' + letter">
+              {{ letter }}
+          </div>
+      </div>
 
-        <div class="board-container"
-             :style="{ transform: \`translate(\${translateX}px, \${translateY}px) scale(\${scale})\` }"
-             @mousemove="handleMouseMove"
-             @mouseleave="handleMouseLeave"
-             @click="handleMouseClick">
+      <!-- Left Labels -->
+      <div class="left-labels">
+          <div class="label" v-for="number in numbers" :key="'left-' + number">
+              {{ number }}
+          </div>
+      </div>
 
-            <!-- Top Labels -->
-            <div class="top-labels">
-                <div class="label" v-for="letter in letters" :key="'top-' + letter">
-                    {{ letter }}
-                </div>
-            </div>
+      <!-- Board -->
+      <div class="board"
+           :style="{
+               width: (board_size - 1) * cellSize + 'px',
+               height: (board_size - 1) * cellSize + 'px',
+           }">
+          <!-- Grid Lines -->
+          <div
+              v-for="i in board_size"
+              :key="'h' + i"
+              class="grid-line"
+              :style="{
+                  top: (i - 1) * cellSize + 'px',
+                  left: '0',
+                  width: (board_size - 1) * cellSize + 'px',
+                  height: '1px'
+              }">
+          </div>
+          <div
+              v-for="j in board_size"
+              :key="'v' + j"
+              class="grid-line"
+              :style="{
+                  left: (j - 1) * cellSize + 'px',
+                  top: '0',
+                  width: '1px',
+                  height: (board_size - 1) * cellSize + 'px'
+              }">
+          </div>
 
-            <!-- Left Labels -->
-            <div class="left-labels">
-                <div class="label" v-for="number in numbers" :key="'left-' + number">
-                    {{ number }} 
-                </div>
-            </div>
+          <!-- Stones -->
+          <div
+              v-for="(stone, index) in stonePositions"
+              :key="index"
+              :class="['stone', stone.color]"
+              :style="{
+                  top: stone.top + 'px',
+                  left: stone.left + 'px'
+              }">
+          </div>
 
-            <!-- Board -->
-            <div class="board"
-                 :style="{
-                     width: (board_size - 1) * cellSize + 'px',
-                     height: (board_size - 1) * cellSize + 'px',
-                 }">
-                <!-- Grid Lines -->
-                <div
-                    v-for="i in board_size"
-                    :key="'h' + i"
-                    class="grid-line"
-                    :style="{
-                        top: (i - 1) * cellSize + 'px',
-                        left: '0',
-                        width: (board_size - 1) * cellSize + 'px',
-                        height: '1px'
-                    }">
-                </div>
-                <div
-                    v-for="j in board_size"
-                    :key="'v' + j"
-                    class="grid-line"
-                    :style="{
-                        left: (j - 1) * cellSize + 'px',
-                        top: '0',
-                        width: '1px',
-                        height: (board_size - 1) * cellSize + 'px'
-                    }">
-                </div>
+          <div v-if="hoveredPosition"
+               :class="['ghost-stone', 'ghost-stone-' + ghostMode]"
+               :style="{
+                   left: hoveredPosition.x * cellSize + 'px',
+                   top: hoveredPosition.y * cellSize + 'px',
+                   // backgroundColor: ghostMode === 'B' ? 'black' : 'white',
+                   // borderColor: ghostMode === 'W' ? 'black' : 'transparent'
+               }"></div>
 
-                <!-- Stones -->
-                <div
-                    v-for="(stone, index) in stonePositions"
-                    :key="index"
-                    :class="['stone', stone.color]"
-                    :style="{
-                        top: stone.top + 'px',
-                        left: stone.left + 'px'
-                    }">
-                </div>
-              
-                <div v-if="hoveredPosition" 
-                     :class="['ghost-stone', 'ghost-stone-' + ghostMode]"
-                     :style="{ 
-                         left: hoveredPosition.x * cellSize + 'px',
-                         top: hoveredPosition.y * cellSize + 'px',
-                         // backgroundColor: ghostMode === 'B' ? 'black' : 'white',
-                         // borderColor: ghostMode === 'W' ? 'black' : 'transparent'
-                     }"></div>
-              
-                <!-- Star Points -->
-                <div
-                    v-for="(point, index) in starPoints"
-                    :key="'star' + index"
-                    class="star-point"
-                    :style="{
-                        top:  point[1] * cellSize + 'px',
-                        left: point[0] * cellSize + 'px'
-                    }">
-                </div>
-                
-                <!-- Labels -->
-                <div
-                    v-for="(label, index) in labels"
-                    :key="'label-' + index"
-                    :class="['label2', { circle: label.isCircle }]"
-                    :style="{
-                        top: label.row  * cellSize + 'px',
-                        left: label.col * cellSize + 'px',
-                        color: label.color,
-                        backgroundColor: label.background // Set the background color dynamically
-                    }">
-                    {{ label.isCircle ? '' : label.text }}
-                </div>
+          <!-- Star Points -->
+          <div
+              v-for="(point, index) in starPoints"
+              :key="'star' + index"
+              class="star-point"
+              :style="{
+                  top:  point[1] * cellSize + 'px',
+                  left: point[0] * cellSize + 'px'
+              }">
+          </div>
+
+          <!-- Labels -->
+          <div
+              v-for="(label, index) in labels"
+              :key="'label-' + index"
+              :class="['label2', { circle: label.isCircle }]"
+              :style="{
+                  top: label.row  * cellSize + 'px',
+                  left: label.col * cellSize + 'px',
+                  color: label.color,
+                  backgroundColor: label.background // Set the background color dynamically
+              }">
+              {{ label.isCircle ? '' : label.text }}
+          </div>
 
 
-            </div>
+      </div>
 
-            <!-- Right Labels -->
-            <div class="right-labels">
-                <div class="label" v-for="number in numbers" :key="'right-' + number">
-                    {{ number }} 
-                </div>
-            </div>
+      <!-- Right Labels -->
+      <div class="right-labels">
+          <div class="label" v-for="number in numbers" :key="'right-' + number">
+              {{ number }}
+          </div>
+      </div>
 
-            <!-- Bottom Labels -->
-            <div class="bottom-labels">
-                <div class="label" v-for="letter in letters" :key="'bottom-' + letter">
-                    {{ letter }} 
-                </div>
-            </div>
-        </div>`,
-    data() {
+      <!-- Bottom Labels -->
+      <div class="bottom-labels">
+          <div class="label" v-for="letter in letters" :key="'bottom-' + letter">
+              {{ letter }}
+          </div>
+      </div>
+  </div>
+</template>
+
+<script>
+import {parseCoordinates} from "../js/utils";
+
+export default {
+  name: 'GoBoard',
+      data() {
         return {
             board_size: 19,
             stonePositions: [],
@@ -345,6 +338,6 @@ Vue.component('go-board',{
         }
 
     }
+    }
 
-})
-
+</script>

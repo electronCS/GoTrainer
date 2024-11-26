@@ -1,93 +1,26 @@
-<!-- templates/board_with_moves.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Go Board</title>
+
     {% load static %}
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'playground/css/board.css' %}">
     <link rel="stylesheet" href="{% static 'playground/css/board-controller.css' %}">
     <link rel="stylesheet" href="{% static 'playground/css/variation-tree.css' %}">
     <link rel="stylesheet" href="{% static 'playground/css/variation-tree-node.css' %}">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-</head>
-<script>
-    window.sgfString = `{{ sgf_string|safe|escapejs }}`;
-
-    console.log("Loaded SGF string:", window.sgfString);
-    // console.log("final board state is " + window.finalBoardState);
-</script>
-<body>
-<div id="app">
-
-
-    {% block content %}
-    <h2>Board Size: 19</h2>
-
-        <!-- Buttons -->
-{#    <button @click="zoomOut">Zoom Out</button>#}
-{#    <button @click="zoomIn">Zoom In</button>#}
-{#    <!--<button @click="$refs.goBoard.zoomOut()">Zoom Out</button>-->#}
-{#    <button @click="$refs.goBoard.moveBoard(30, 0)">Move Right</button>#}
-{#    <button @click="$refs.goBoard.moveBoard(-30, 0)">Move Left</button>#}
-        <!-- Add Up and Down similarly -->
-
-        <!-- Go Board Component -->
-    <go-board-controller></go-board-controller>
-
-    {% endblock %}
-
-
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            new Vue({
-                el: '#app',
-                // delimiters: ['{{', '}}'],  // Change if needed
-                data: {
-                    // boardData: [], // This will be populated from Django context
-                    translateX: 0,
-                    translateY: 0,
-                    scale: 1.2
-
-                },
-                mounted() {
-
-                },
-                methods: {
-
-                    zoomIn() {
-                        this.scale += 0.1;
-                        console.log("zooming in");
-                    },
-                    zoomOut() {
-                        if (this.scale > 0.2) this.scale -= 0.1;
-                    },
-                    moveBoard(dx, dy) {
-                        this.translateX += dx;
-                        this.translateY += dy;
-                    }
-                }
-
-            })
-        });
-
+        // SGF data passed from Django
+        window.sgfString = `{{ sgf_string|safe|escapejs }}`;
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sgfjs"></script>
-<!--    <script src="https://d3js.org/d3.v7.min.js"></script>-->
+</head>
+<body>
+    <div id="app"></div>
+  <script src="http://localhost:8080/static/playground/js/bundle.js"></script> <!-- Webpack bundle -->
 
-<!--    <script src="https://cdn.jsdelivr.net/npm/go-board@latest"></script>-->
-<script src="http://localhost:8080/static/playground/js/bundle.js" type="module"></script>
-{#<!--<script src="{% static 'playground/js/bundle.js' %}" type="module"></script>-->#}
-{##}
-{#    <script src="{% static 'playground/js/utils.js' %}"></script>#}
-{#    <script type="module" src="{% static 'playground/js/BoardController.js' %}"></script>#}
-{#    <script type="module" src="{% static 'playground/js/Board.js' %}"></script>#}
-{#    <script src="{% static 'playground/js/variation-tree.js' %}"></script>#}
-{#    <script src="{% static 'playground/js/variation-tree-node.js' %}"></script>#}
-{##}
-{#<!--    <script src="{% static 'playground/js/Board.js' %}"></script>-->#}
-</div>
 </body>
 </html>
