@@ -10,7 +10,7 @@
                           :translate-x="translateX"
                           :translate-y="translateY"
                           :scale="scale"
-                          :ghostMode="ghostMode"
+                          :ghostMode="boardMode"
                           @board-clicked="handleBoardClick">
                       </GoBoard>
 
@@ -27,6 +27,21 @@
 
               <!-- Second Column: Variation Tree -->
               <div class="second-column">
+                <div class="control-panel-container">
+
+                    <ControlPanel
+                      :currentMode="mode"
+                      @mode-selected="updateMode"
+                      @action-selected="handleAction"/>
+                </div>
+
+                <div class="comment-box-container">
+                  <CommentBox
+                    :node="currentNode"
+                    @update-comment="updateNodeComment"
+                  />
+                </div>
+
                   <div class="variation-tree-container">
                       <VariationTree
                           :root-node="rootNode"
@@ -50,11 +65,15 @@ import '../css/variation-tree-node.css';
 import GoBoard from "./GoBoard.vue";
 import VariationTree from "./VariationTree.vue";
 import SGF from 'sgfjs';
+import ControlPanel from "./ControlPanel.vue";
+import CommentBox from './CommentBox.vue';
 
 export default {
   name: 'GoBoardController',
   components: {
     GoBoard,
+    ControlPanel,
+    CommentBox,
     VariationTree
   },
   data() {
@@ -70,9 +89,16 @@ export default {
           translateY: 0,
           scale: 1,
           boardBaseSize: 624, // Base size of the board at scale 1 (e.g., 19x19 with default cellSize)
-          ghostMode: 'B', // Default to Black stones
+          turn: 'B', // Default to Black stones
+          mode: 'Play', // Default mode
 
       };
+  },
+  computed: {
+    boardMode() {
+      console.log("board mode is " + (this.mode === 'Play' ? this.turn : this.mode));
+      return this.mode === 'Play' ? this.turn : 'A';
+    }
   },
   mounted() {
       if (window.sgfString) {
@@ -87,6 +113,84 @@ export default {
       window.removeEventListener('resize', this.calculateScale);
   },
   methods: {
+      updateMode(newMode) {
+        console.log(`Mode changed to: ${newMode}`);
+        this.mode = newMode; // Update the mode
+      },
+        updateNodeComment(newComment) {
+      // Update the comment in the current node's props
+      this.currentNode.props.C = newComment;
+      console.log('Updated comment:', newComment);
+    },
+
+      handleAction(action) {
+    console.log(`Action selected: ${action}`);
+    if (action === 'Open') {
+      this.openGame();
+    } else if (action === 'Save') {
+      this.saveGame();
+    } else if (action === 'Game Info') {
+      this.showGameInfo();
+    }
+  },
+  openGame() {
+    console.log('Open game functionality goes here');
+  },
+    getCsrfToken() {
+            const match = document.cookie.match(/csrftoken=([^;]+)/);
+            console.log("csrf token is " + (match ? match[1] : null));
+            return match ? match[1] : null;
+        },
+
+  saveGame() {
+    if (!this.rootNode) {
+        console.error('No game data to save.');
+        return;
+      }
+
+        // Convert the root node and its children to an SGF string
+        const sgfString = `(${this.convertNodeToSgf(this.rootNode)})`;
+
+        // Save or download the SGF string
+        console.log('SGF String:', sgfString);
+        // Send the SGF string to the backend
+      fetch('/playground/save-sgf/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': this.getCsrfToken() // Add the CSRF token here
+
+          },
+          body: new URLSearchParams({ sgf_string: sgfString })
+      })
+      .then(response => {
+          if (!response.ok) {
+              // Log the full response if there's an error
+              console.error('Error response from server:', response);
+              return response.text(); // Parse as text to see the error page
+          }
+          return response.json(); // Parse as JSON if the response is OK
+      })
+      .then(data => {
+          console.log('Response data:', data);
+      })
+      .catch(error => {
+          console.error('Error during save request:', error);
+      });
+
+        // Example: Trigger a download
+        // const blob = new Blob([sgfString], { type: 'text/plain' });
+        // const link = document.createElement('a');
+        // link.href = URL.createObjectURL(blob);
+        // link.download = 'game.sgf';
+        // document.body.appendChild(link);
+        // link.click();
+        // document.body.removeChild(link);
+
+  },
+  showGameInfo() {
+    console.log('Game info functionality goes here');
+  },
 
       handleBoardClick({ x, y }) {
           console.log(`Clicked on (${x}, ${y})`);
@@ -101,6 +205,15 @@ export default {
           const existingChild = this.currentNode.children.find(
               child => child.props.B === sgfCoord || child.props.W === sgfCoord
           );
+
+          if (this.mode === 'A' || this.mode === '1') {
+            console.log("currnet node props");
+            console.log(this.currentNode.props);
+            this.addAnnotation(sgfCoord);
+
+            this.currentNode.print();
+            return;
+          }
 
           if (existingChild) {
               // Navigate to the existing node
@@ -133,14 +246,78 @@ export default {
           this.updateBoardState();
       },
 
+    addAnnotation(sgfCoord) {
+        const lb = this.currentNode.props.LB || []; // Ensure LB exists as an array
+        const usedValues = lb.map(annotation => annotation.split(':')[1]); // Extract used annotations
+
+        // Check if the coordinate already has an annotation
+        const existingAnnotationIndex = lb.findIndex(annotation => annotation.startsWith(`${sgfCoord}:`));
+
+        if (existingAnnotationIndex !== -1) {
+            const existingAnnotation = lb[existingAnnotationIndex];
+            const existingValue = existingAnnotation.split(':')[1];
+
+            if (this.mode === 'A' && /^[A-Z]$/.test(existingValue)) {
+                // If mode is 'A' and there's already a letter, remove it
+                console.log(`Removing existing letter annotation: ${existingAnnotation}`);
+                lb.splice(existingAnnotationIndex, 1);
+                this.currentNode.props.LB = lb; // Update the props
+                return; // Exit without adding a new annotation
+            }
+
+            if (this.mode === '1' && /^\d+$/.test(existingValue)) {
+                // If mode is '1' and there's already a number, remove it
+                console.log(`Removing existing number annotation: ${existingAnnotation}`);
+                lb.splice(existingAnnotationIndex, 1);
+                this.currentNode.props.LB = lb; // Update the props
+                return; // Exit without adding a new annotation
+            }
+
+            // If different type exists, remove it and proceed to add the new annotation
+            console.log(`Replacing ${existingAnnotation} with a new annotation.`);
+            lb.splice(existingAnnotationIndex, 1);
+        }
+
+        let newAnnotation;
+
+        if (this.mode === 'A') {
+            // Handle letters
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const availableLetter = letters.split('').find(letter => !usedValues.includes(letter));
+
+            if (availableLetter) {
+                newAnnotation = `${sgfCoord}:${availableLetter}`;
+            } else {
+                console.log('No available letters for annotation.');
+                return;
+            }
+        } else if (this.mode === '1') {
+            // Handle numbers
+            let availableNumber = 1;
+            while (usedValues.includes(String(availableNumber))) {
+                availableNumber++;
+            }
+
+            newAnnotation = `${sgfCoord}:${availableNumber}`;
+        } else {
+            console.log(`Unsupported mode: ${this.mode}`);
+            return;
+        }
+
+        // Add the new annotation to LB
+        lb.push(newAnnotation);
+        this.currentNode.props.LB = lb; // Update the props object
+        console.log(`Added annotation: ${newAnnotation}`);
+    },
+
       determineNextColor() {
           // Determine the color of the next move based on the current node
           const parentProps = this.currentNode.props;
           if (parentProps.W || (!parentProps.W && !parentProps.B)) {
-              this.ghostMode = 'B';
+              this.turn = 'B';
               return 'B'; // If the parent is a Black move or root, the next is White
           }
-          this.ghostMode = 'W';
+          this.turn = 'W';
           return 'W'; // Otherwise, the next move is Black
       },
 
@@ -210,6 +387,32 @@ export default {
           return node;
       },
 
+    convertNodeToSgf(node) {
+        const propsToSgf = Object.entries(node.props)
+            .map(([key, value]) => {
+                if (Array.isArray(value)) {
+                    return value.map(v => `${key}[${v}]`).join('');
+                } else if (value) {
+                    return `${key}[${value}]`;
+                }
+                return '';
+            })
+            .join('');
+
+        let sgf = `;${propsToSgf}`;
+
+        if (node.children.length > 0) {
+            // Wrap all children in parentheses to ensure variations are processed inline
+            node.children.forEach(child => {
+                sgf += `(${this.convertNodeToSgf(child)})`;
+            });
+        }
+
+
+        return sgf;
+    },
+
+
       navigateToNode(node) {
           this.currentNode = node;
           this.updateBoardState();
@@ -269,7 +472,7 @@ export default {
       },
 
       updateBoardState() {
-          this.ghostMode = this.determineNextColor();
+          this.turn = this.determineNextColor();
 
           // Reset the board
           this.board = Board.fromDimensions(19);

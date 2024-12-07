@@ -17,6 +17,12 @@
         // SGF data passed from Django
         window.sgfString = `{{ sgf_string|safe|escapejs }}`;
     </script>
+    
+    <script>
+        // CSRF token is rendered server-side and included in the page
+        const CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+
 </head>
 <body>
     <div id="app"></div>

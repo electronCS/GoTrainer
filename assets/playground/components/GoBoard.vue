@@ -68,7 +68,10 @@
                    top: hoveredPosition.y * cellSize + 'px',
                    // backgroundColor: ghostMode === 'B' ? 'black' : 'white',
                    // borderColor: ghostMode === 'W' ? 'black' : 'transparent'
-               }"></div>
+               }">
+              <span v-if="ghostMode === 'A'">X</span>
+
+          </div>
 
           <!-- Star Points -->
           <div
@@ -161,8 +164,7 @@ export default {
         ghostMode: {
             type: String,
             default: 'B' // Default to Black stones
-        }
-
+        },
     },
     mounted() {
 
@@ -191,6 +193,12 @@ export default {
                 this.generateLabels();
             },
             deep: true
+        },
+        ghostMode: {
+          handler(newVal, oldVal) {
+                console.log("ghostMode changed " + this.ghostMode);
+            },
+
         }
 
     },
@@ -204,10 +212,12 @@ export default {
         // Ensure hover stays within the board bounds
         if (x >= 0 && x < this.board_size && y >= 0 && y < this.board_size) {
             // Check if there's an existing stone and ghostMode is 'B' or 'W'
-            if ((this.ghostMode === 'B' || this.ghostMode === 'W') && this.initialBoardState[y][x] !== 0) {
-                this.hoveredPosition = null; // Do not display ghost stone
+            if (this.ghostMode === 'A' || this.ghostMode === '1') {
+              this.hoveredPosition = { x, y };
+            } else if ((this.ghostMode === 'B' || this.ghostMode === 'W') && this.initialBoardState[y][x] === 0) {
+              this.hoveredPosition = { x, y };
             } else {
-                this.hoveredPosition = { x, y }; // Set hovered position
+              this.hoveredPosition = null;
             }
         } else {
             this.hoveredPosition = null; // Reset if outside bounds
@@ -270,15 +280,15 @@ export default {
             const props = this.currentNode.props;
             const labels = [];
 
-            // Extract the comment (if exists)
-            if (props.C) {
-                labels.push({
-                    text: props.C, // Add the comment as a label
-                    row: this.board_size, // You can position it at the bottom or any preferred row
-                    col: Math.floor(this.board_size / 2), // Center it horizontally or set as needed
-                    color: 'black' // Default to black for comments
-                });
-            }
+            // // Extract the comment (if exists)
+            // if (props.C) {
+            //     labels.push({
+            //         text: props.C, // Add the comment as a label
+            //         row: this.board_size, // You can position it at the bottom or any preferred row
+            //         col: Math.floor(this.board_size / 2), // Center it horizontally or set as needed
+            //         color: 'black' // Default to black for comments
+            //     });
+            // }
 
             // Extract labels from 'LB'
             const labelPositions = new Set(); // To track which positions already have labels

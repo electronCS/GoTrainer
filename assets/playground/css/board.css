@@ -28,22 +28,36 @@
     position: absolute;
     width: 28px; /* Match stone size */
     height: 28px; /* Match stone size */
-    border-radius: 50%; /* Circular shape */
     /*background-color: black; !* Hardcoded to black for now *!*/
     /*opacity: 0.5; !* Make it translucent *!*/
     transform: translate(-50%, -50%); /* Center the stone */
     pointer-events: none; /* Allow mouse events to pass through */
-    z-index: 2;
+    z-index: 1000;
 }
 .ghost-stone-B {
-    background-color: black; /* Hardcoded to black for now */
+    border-radius: 50%; /* Circular shape */
 
+    background-color: black; /* Hardcoded to black for now */
     opacity: 0.5;
 }
 .ghost-stone-W {
+    border-radius: 50%; /* Circular shape */
+
     background-color: white; /* Hardcoded to black for now */
     opacity: 0.8;
 }
+.ghost-stone-A {
+  font-size: 25px; /* Size of the X */
+  text-align: center; /* Center the X horizontally */
+    transform: translate(-49%, -49%); /* Center the element */
+  font-family: 'Roboto', sans-serif;
+}
+/*.ghost-stone-1 {*/
+/*  font-size: 25px; !* Size of the X *!*/
+/*  text-align: center; !* Center the X horizontally *!*/
+/*    transform: translate(-49%, -49%); !* Center the element *!*/
+/*  font-family: 'Roboto', sans-serif;*/
+/*}*/
 .stone {
     position: absolute;
     width: 29px;
