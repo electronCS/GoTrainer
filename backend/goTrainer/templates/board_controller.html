@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Board</title>
+
+    {% load static %}
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{% static 'goTrainer/css/board.css' %}">
+    <link rel="stylesheet" href="{% static 'goTrainer/css/board-controller.css' %}">
+    <link rel="stylesheet" href="{% static 'goTrainer/css/variation-tree.css' %}">
+    <link rel="stylesheet" href="{% static 'goTrainer/css/variation-tree-node.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <script>
+        // SGF data passed from Django
+        window.sgfString = `{{ sgf_string|safe|escapejs }}`;
+    </script>
+    
+    <script>
+        // CSRF token is rendered server-side and included in the page
+        const CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+
+</head>
+<body>
+    <div id="app"></div>
+<!--  <script src="http://localhost:8080/static/playground/js/bundle.js"></script> &lt;!&ndash; Webpack bundle &ndash;&gt;-->
+    <script src="{% static 'goTrainer/js/bundle.js' %}"></script> <!-- Updated Webpack bundle -->
+
+</body>
+</html>

@@ -156,7 +156,7 @@ if __name__ == '__main__':
         print(f"trying {filename}")
         pattern_search(pattern_template, pattern_turn, full_file_path, katago)
         count += 1
-        if count == 20:
+        if count == 200:
             print("done")
             break
 

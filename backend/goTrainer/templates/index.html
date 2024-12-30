@@ -1,0 +1,51 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'besogo/page.css'%}">
+<link rel="stylesheet" type="text/css" href="{% static 'besogo/css/besogo.css'%}">
+<link rel="stylesheet" type="text/css" href="{% static 'besogo/css/board-wood.css'%}" id="theme">
+
+<!--<script src = "{% static '/besogo/besogo.min.js'%}"></script>-->
+
+<script src="{% static '/besogo/js/besogo.js' %}"></script>
+
+<script src="{% static '/besogo/js/boardDisplay.js' %}"></script>
+
+<script src="{% static '/besogo/js/commentPanel.js' %}"></script>
+<script src="{% static '/besogo/js/controlPanel.js' %}"></script>
+<script src="{% static '/besogo/js/coord.js' %}"></script>
+<script src="{% static '/besogo/js/editor.js' %}"></script>
+<script src="{% static '/besogo/js/filePanel.js' %}"></script>
+<script src="{% static '/besogo/js/gameRoot.js' %}"></script>
+<script src="{% static '/besogo/js/loadSgf.js' %}"></script>
+<script src="{% static '/besogo/js/namesPanel.js' %}"></script>
+<script src="{% static '/besogo/js/parseSgf.js' %}"></script>
+<script src="{% static '/besogo/js/saveSgf.js' %}"></script>
+<script src="{% static '/besogo/js/svgUtil.js' %}"></script>
+<script src="{% static '/besogo/js/toolPanel.js' %}"></script>
+<script src="{% static '/besogo/js/treePanel.js' %}"></script>
+
+
+<script src = "{% static 'test.js'%}"></script>
+
+
+<!--<div class="besogo-editor"></div>-->
+<!--<h1>Hello {{name}}</h1>-->
+<!--<button id="fetchButton">Fetch Data</button>-->
+<!--<script>-->
+<!--    document.getElementById('fetchButton').addEventListener('click', function() {-->
+<!--        console.log("running script")-->
+
+<!--        fetch('/playground/fetch-data/')-->
+<!--        .then(response => response.json())-->
+<!--        .then(data => {-->
+<!--            console.log(data);  // Process and display the data as required-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
+
+<div class="besogo-editor" sgf="{% static 'besogo/example2.sgf' %}"></div>
+<!--<div class="besogo-diagram" panels="comment">-->
+<!--(;FF[4]GM[1]SZ[9]AB[bb:dd]AW[ee][ff][gg]-->
+<!--C[This diagram shows a 9x9 board with 9 black stones and 3 white stones placed on it.-->
+<!--Be sure to properly escape HTML special characters such as &gt;, &lt;, etc.])-->
+</div>

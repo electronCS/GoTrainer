@@ -1,0 +1,92 @@
+
+.variation-tree {
+    margin-left: 20px; /* Indent children */
+    position: relative;
+}
+
+.node-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.move {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    text-align: center;
+    width: 30px;
+    height: 30px;
+    line-height: 20px;
+    background-color: #f5deb3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.move.current {
+    border: 2px solid blue;
+    background-color: #ffe4b5;
+}
+
+.children {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Connectors */
+.node-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 10px;
+    height: 1px;
+    border-top: 1px solid #000;
+}
+
+.node-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 1px;
+    height: 100%;
+    border-left: 1px solid #000;
+}
+
+.variation-tree-container {
+    /*padding: 10px;*/
+  width: 100%; /* Adjust to your preferred size */
+      max-width: 100%; /* Prevent it from exceeding the container width */
+
+  height: 300px; /* Adjust to your preferred size */
+  /*overflow: auto; !* Enable scrolling *!*/
+  border: 1px solid #ccc; /* Optional: Add a border to distinguish the scrollable area */
+  position: relative;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  overflow-y: auto; /* Enable vertical scrolling */
+  box-sizing: border-box; /* Include padding and border in width/height calculations */
+
+}
+
+.variation-tree-svg {
+    background-color: #FAFAFA;
+  display: block; /* Prevent inline SVG elements from adding extra space */
+      width: auto; /* Allow the SVG to define its own width */
+  /*max-width: 100%; !* Prevent overflow *!*/
+  /*width: 2000px; !* Example: Content wider than the container *!*/
+
+  /*width: 100%; !* Adjust to your preferred size *!*/
+}
+
+.variation-tree:first-child .node-container::before {
+    border-top: none; /* Remove top connector for the root node */
+}
+
+.variation-tree:first-child .node-container::after {
+    border-left: none; /* Remove left connector for the root node */
+}
+

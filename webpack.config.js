@@ -4,19 +4,19 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = {
 
-    entry: './assets/playground/js/main.js', // Update with your JavaScript entry point
+    entry: './frontend/src/main.js', // Update with your JavaScript entry point
 
     output: {
         filename: 'bundle.js',
-        path: path.resolve(__dirname, 'playground/static/playground/js'), // Path to write bundle.js during build
-        publicPath: '/static/playground/js/', // Public URL where the bundle is served from
+        path: path.resolve(__dirname, 'backend/goTrainer/js'), // Path to write bundle.js during build
+        publicPath: '/static/goTrainer/js/', // Public URL where the bundle is served from
 
     },
     mode: 'development',
 
     devServer: {
         static: {
-            directory: path.resolve(__dirname, 'playground/static'), // Serve static files from this directory
+            directory: path.resolve(__dirname, 'backend/goTrainer/static'), // Serve static files from this directory
         },
         hot: true, // Enable hot module replacement
         compress: true,
