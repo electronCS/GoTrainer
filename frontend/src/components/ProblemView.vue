@@ -1,5 +1,9 @@
 <template>
       <div class="problem-view">
+        <div class="tag-search">
+          <input type="text" v-model="searchTags" placeholder="Enter tags separated by commas" />
+          <button @click="searchByTags">Search</button>
+        </div>
           <div class="columns">
               <!-- First Column: Board and Controls -->
               <div class="first-column">
@@ -77,6 +81,9 @@ export default {
       return {
           sgfData: null,
           board: Board.fromDimensions(19),
+    currentIndex: currentIndex,
+    tags: tags,
+    searchTags: tags, // Pre-fill the search field
 
           currentBoardState: [], // Array to represent the current board state
           currentNode: null,     // Reference to the current node in the SGF tree
@@ -141,12 +148,26 @@ export default {
       console.log('Updated comment:', newComment);
     },
 
-      loadNextProblem() {
-    const nextProblemId = "problem_12346"; // Example: Set the next problem ID here
-
-    // Redirect to the /problem endpoint with the next problemId
-    window.location.href = `/problem?problemId=${nextProblemId}`;
+  searchByTags() {
+    const tags = this.searchTags.trim();
+    if (tags) {
+      window.location.href = `/problem?tags=${tags}&index=0`;
+    }
   },
+  loadNextProblem() {
+    const nextIndex = this.currentIndex + 1; // Increment index
+    const tags = this.tags; // Include the current tags
+    window.location.href = `/problem?tags=${tags}&index=${nextIndex}`;
+  },
+
+
+
+  //     loadNextProblem() {
+  //   const nextProblemId = "problem_12346"; // Example: Set the next problem ID here
+  //
+  //   // Redirect to the /problem endpoint with the next problemId
+  //   window.location.href = `/problem?problemId=${nextProblemId}`;
+  // },
 
         navigateToProblemPosition(position) {
         if (!position || !this.rootNode) {

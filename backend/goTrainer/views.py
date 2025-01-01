@@ -7,7 +7,7 @@ import logging
 from .models import Board
 from .sgf_utils import read_sgf_file, get_sgf_string
 import json
-from opensearchpy import OpenSearch
+from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 
 # Get an instance of a logger
@@ -48,14 +48,45 @@ def display_board_controller(request):
 
 def display_problem_interface(request):
     try:
-        problem_id = request.GET.get('problemId', 'problem_12345')  # Default to the first problem
+        # Get problemId and tag from the request
+        problem_id = request.GET.get('problemId')  # Current problem ID
+        # tag = request.GET.get('tag', 'test')  # Tag to filter by
+        tags = request.GET.get('tags', 'test').split(',')  # Split tags by comma
 
-        # Fetch data from DynamoDB
-        # dynamodb_data = fetch_from_dynamodb(request).content
-        # problem_data = json.loads(dynamodb_data)  # Convert JsonResponse content to Python dictionary
-        problem_data = fetch_from_dynamodb(problem_id)  # Fetch data directly
+        current_index = int(request.GET.get('index', 0))  # Default to the first problem
 
-        # Extract the problem information
+        print("Session tags:", request.session.get('tags'))
+        print("Requested tags:", tags)
+
+        if 'problem_ids' not in request.session or request.session.get('tags') != tags:
+            print("Refreshing problem_ids for tags:", tags)
+            es_results = search_problems_by_tags(tags)
+            request.session['problem_ids'] = es_results
+            request.session['tags'] = tags
+            current_index = 0  # Reset to the first problem
+        else:
+            print("Using cached problem_ids for tags:", tags)
+
+        # Get the problem ID for the current index
+        problem_ids = request.session.get('problem_ids', [])
+        print("problem ids are ", problem_ids)
+        print("current index is ", current_index)
+
+        problem_ids = request.session.get('problem_ids', [])
+        if not problem_ids:
+            print("No problems found for the tags. Defaulting to problem with ID 'default'.")
+            problem_ids = ['default']
+            request.session['problem_ids'] = problem_ids
+            request.session['tags'] = ['default']
+            current_index = 0
+
+        if current_index >= len(problem_ids):
+            return JsonResponse({"error": "No more problems available."}, status=404)
+
+        problem_id = problem_ids[current_index]
+
+        # Fetch problem data from DynamoDB
+        problem_data = fetch_from_dynamodb(problem_id)
         item = problem_data.get('Item', {})
         position = item.get('position', '')
         correct_answers = item.get('correctAnswers', [])
@@ -69,14 +100,15 @@ def display_problem_interface(request):
         context = {
             "sgfString": sgf_string,
             "position": position,
-            "correctAnswers": correct_answers
+            "correctAnswers": correct_answers,
+            "currentIndex": current_index,
+            "tags": ','.join(tags)  # Pass tags back to the frontend
         }
 
         return render(request, "do_problem.html", context)
     except Exception as e:
         logger.error("Error in display_problem_interface: %s", e)
         return JsonResponse({"error": str(e)}, status=500)
-
 
 
 def render_board(request, board_size, final_board_state):
@@ -135,10 +167,11 @@ def fetch_from_dynamodb(problem_id):
         return {"error": str(e)}
 
 
-def search_problems_by_tag(tag):
+def search_problems_by_tags(tags):
     try:
         session = boto3.Session()
         credentials = session.get_credentials()
+        print("credentials are ", credentials.secret_key, credentials.access_key, credentials.token)
         region = 'us-east-1'  # Replace with your OpenSearch region
 
         # Create AWS4Auth
@@ -150,19 +183,35 @@ def search_problems_by_tag(tag):
             hosts=[{'host': 'search-domain-test-l7githvhafgmj5ckm7tt3l3wnu.us-east-1.es.amazonaws.com', 'port': 443}],
             http_auth=awsauth,
             use_ssl=True,
-            verify_certs=True
+            verify_certs=True,
+            connection_class = RequestsHttpConnection
         )
+
+        # query = {
+        #     "query": {
+        #         "terms": {
+        #             "doc.tags.keyword": tags
+        #         }
+        #     },
+        #     "_source": ["doc.id"]
+        # }
 
         query = {
             "query": {
-                "term": {
-                    "doc.tags.keyword": tag
+                "terms_set": {
+                    "doc.tags.keyword": {
+                        "terms": tags,
+                        "minimum_should_match_script": {
+                            "source": "params.num_terms"
+                        }
+                    }
                 }
-            },
-            "_source": ["doc.id"]
+            }
         }
 
-        response = client.search(index="your_index_name", body=query)
+
+        response = client.search(index="problems", body=query)
+
         problem_ids = [hit["_source"]["doc"]["id"] for hit in response["hits"]["hits"]]
         return problem_ids
     except Exception as e:

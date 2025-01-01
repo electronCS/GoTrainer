@@ -16,9 +16,10 @@
         window.problemPosition = `{{ position }}`;
         // window.correctAnswers = JSON.parse(document.getElementById('correctAnswers').textContent);
         window.correctAnswers = `{{ correctAnswers|safe|escapejs }}`;
+        window.currentIndex = `{{ currentIndex}}`;
+        window.tags = `{{ tags }}`;
 
         console.log("correct answers in html are " + window.correctAnswers);
-        // window.correctAnswers = JSON.parse(`{{ correct_answers|safe|escapejs }}`);
 
     </script>
     <!--    <link rel="stylesheet" href="{% static 'goTrainer/css/problem-interface.css' %}">-->
