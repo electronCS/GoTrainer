@@ -155,7 +155,8 @@ export default {
     }
   },
   loadNextProblem() {
-    const nextIndex = this.currentIndex + 1; // Increment index
+
+    const nextIndex = parseInt(this.currentIndex) + 1; // Ensure numeric addition
     const tags = this.tags; // Include the current tags
     window.location.href = `/problem?tags=${tags}&index=${nextIndex}`;
   },
