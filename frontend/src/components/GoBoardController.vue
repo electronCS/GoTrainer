@@ -57,7 +57,7 @@
 <script>
 import { Node } from '../js/game-node.js';
 import Board from '@sabaki/go-board';  // Correctly import the Board class from @sabaki/go-board
-import { parseCoordinates } from '../js/utils.js';
+import { parseCoordinates, convertNodeToSgf, convertSgfToNode } from '../js/utils.js';
 import '../css/board.css';
 import '../css/board-controller.css';
 import '../css/variation-tree.css';
@@ -110,7 +110,7 @@ export default {
 
   },
   beforeDestroy() {
-      window.removeEventListener('resize', this.calculateScale);
+      // window.removeEventListener('resize', this.calculateScale);
   },
   methods: {
       updateMode(newMode) {
@@ -149,12 +149,12 @@ export default {
       }
 
         // Convert the root node and its children to an SGF string
-        const sgfString = `(${this.convertNodeToSgf(this.rootNode)})`;
+        const sgfString = `(${convertNodeToSgf(this.rootNode)})`;
 
         // Save or download the SGF string
         console.log('SGF String:', sgfString);
         // Send the SGF string to the backend
-      fetch('/playground/save-sgf/', {
+      fetch('save-sgf/', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
@@ -247,7 +247,11 @@ export default {
       },
 
     addAnnotation(sgfCoord) {
-        const lb = this.currentNode.props.LB || []; // Ensure LB exists as an array
+        let lb = this.currentNode.props.LB || []; // Ensure LB exists as an array
+          if (typeof lb === 'string') {
+              lb = [lb];
+          }
+
         const usedValues = lb.map(annotation => annotation.split(':')[1]); // Extract used annotations
 
         // Check if the coordinate already has an annotation
@@ -322,22 +326,22 @@ export default {
       },
 
 
-      calculateScale() {
-          // Get the size of the parent column
-          const firstColumn = this.$el.querySelector('.first-column');
-          if (firstColumn) {
-              const availableWidth = firstColumn.clientWidth;
-              const availableHeight = firstColumn.clientHeight;
-
-              console.log("available width is " + availableWidth + " and available height is " + availableHeight);
-
-              // Calculate scale based on the smaller of width or height
-              const scaleWidth = (availableWidth * 0.98)/ this.boardBaseSize;
-              const scaleHeight = availableHeight / this.boardBaseSize;
-              this.scale = Math.min(scaleWidth, scaleHeight); // Maintain aspect ratio
-              console.log("Updated scale:", this.scale);
-          }
-      },
+      // calculateScale() {
+      //     // Get the size of the parent column
+      //     const firstColumn = this.$el.querySelector('.first-column');
+      //     if (firstColumn) {
+      //         const availableWidth = firstColumn.clientWidth;
+      //         const availableHeight = firstColumn.clientHeight;
+      //
+      //         console.log("available width is " + availableWidth + " and available height is " + availableHeight);
+      //
+      //         // Calculate scale based on the smaller of width or height
+      //         const scaleWidth = (availableWidth * 0.98)/ this.boardBaseSize;
+      //         const scaleHeight = availableHeight / this.boardBaseSize;
+      //         this.scale = Math.min(scaleWidth, scaleHeight); // Maintain aspect ratio
+      //         console.log("Updated scale:", this.scale);
+      //     }
+      // },
 
       loadSgf(sgfString) {
           console.log("about to parse sgf which is " + sgfString);
@@ -345,78 +349,16 @@ export default {
           this.sgfData = SGF.parse(sgfString);
           console.log("sgf data is " + JSON.stringify(this.sgfData));
           // Convert parsed SGF data to a tree of Node instances
-          this.rootNode = this.convertSgfToNode(this.sgfData);
+          this.rootNode = convertSgfToNode(this.sgfData);
           this.currentNode = this.rootNode;
           console.log("the current node is " + this.currentNode.print());
 
           this.updateBoardState();
       },
 
-      convertSgfToNode(sgfData, parent = null, moveNumber = 0) {
-          const node = new Node(sgfData.props, parent, moveNumber);
-          // console.log ()
-          // console.log("sgf data props is " + JSON.stringify(sgfData.props, null, 2));
-
-          if (sgfData.props.LB) {
-              // console.log("props has LB")
-              // Ensure LB is an array before mapping
-              const labels = Array.isArray(sgfData.props.LB) ? sgfData.props.LB : [sgfData.props.LB];
-              // Extract label annotations
-              node.labels = labels.map(label => {
-                  const [coord, text] = label.split(':');
-                  const [col, row] = parseCoordinates(coord);
-                  return { col, row, text };
-              });
-
-              // console.log("node labels is " + JSON.stringify(node.labels, null, 2))
-          }
-
-          if (sgfData.childs) {
-              sgfData.childs.forEach(childData => {
-                  const isChildMoveNode = !!(childData.props.B || childData.props.W);
-                  // Increment moveNumber only for child move nodes
-                  const childMoveNumber = isChildMoveNode ? moveNumber + 1 : moveNumber;
-
-                  // Convert the child and add it to the current node
-                  const childNode = this.convertSgfToNode(childData, node, childMoveNumber);
-                  node.addChild(childNode);
-              });
-          }
-          // console.log("returned node is " + node.print())
-
-          return node;
-      },
-
-    convertNodeToSgf(node) {
-        const propsToSgf = Object.entries(node.props)
-            .map(([key, value]) => {
-                if (Array.isArray(value)) {
-                    return value.map(v => `${key}[${v}]`).join('');
-                } else if (value) {
-                    return `${key}[${value}]`;
-                }
-                return '';
-            })
-            .join('');
-
-        let sgf = `;${propsToSgf}`;
-
-        if (node.children.length > 0) {
-            // Wrap all children in parentheses to ensure variations are processed inline
-            node.children.forEach(child => {
-                sgf += `(${this.convertNodeToSgf(child)})`;
-            });
-        }
-
-
-        return sgf;
-    },
-
-
       navigateToNode(node) {
           this.currentNode = node;
           this.updateBoardState();
-
       },
 
       nextMove() {
@@ -522,26 +464,6 @@ export default {
 
           // Reverse the moves to have them in order from root to current node
           return moves.reverse();
-      },
-
-      convertMovesToBoardState(moves) {
-          // Initialize an empty board state (19x19, for example)
-          const boardSize = 19;
-          const boardState = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
-
-          // Apply each move to the board state
-          moves.forEach(move => {
-              if (move.B) {
-                  const [col, row] = parseCoordinates(move.B);
-                  boardState[row][col] = 'B'; // Black stone
-              }
-              if (move.W) {
-                  const [col, row] = parseCoordinates(move.W);
-                  boardState[row][col] = 'W'; // White stone
-              }
-          });
-
-          return boardState;
       },
   }
 }

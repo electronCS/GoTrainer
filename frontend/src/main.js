@@ -1,7 +1,13 @@
 import { createApp } from 'vue';
 import GoBoardController from './components/GoBoardController.vue'; // Adjust path as needed
+import ProblemView from './components/ProblemView.vue'; // Adjust path as needed
 
-createApp(GoBoardController).mount('#app');
+// Check for the appropriate mount point and mount the respective component
+if (document.getElementById('controller-app')) {
+    createApp(GoBoardController).mount('#controller-app');
+} else if (document.getElementById('problem-app')) {
+    createApp(ProblemView).mount('#problem-app');
+}
 
 
 // import { createApp } from 'vue';
