@@ -1,9 +1,18 @@
 <template>
       <div class="problem-view">
+
+        <div style="margin-top: 1em;">
+  <input v-model="gtpCommand" value="kata-analyze B 10" />
+  <button @click="sendGTPCommand">Send to KataGo</button>
+</div>
+
+        <button @click="testKataGoWebSocket">Test KataGo WS</button>
+
         <div class="tag-search">
           <input type="text" v-model="searchTags" placeholder="Enter tags separated by commas" />
           <button @click="searchByTags">Search</button>
         </div>
+
           <div class="columns">
               <!-- First Column: Board and Controls -->
               <div class="first-column">
@@ -84,17 +93,18 @@ export default {
     currentIndex: currentIndex,
     tags: tags,
     searchTags: tags, // Pre-fill the search field
-
-          currentBoardState: [], // Array to represent the current board state
-          currentNode: null,     // Reference to the current node in the SGF tree
-          rootNode: null,        // Reference to the root node of the SGF tree
-          isCorrect: null,
-          translateX: 0,
-          translateY: 0,
-          scale: 1,
-          boardBaseSize: 624, // Base size of the board at scale 1 (e.g., 19x19 with default cellSize)
-          turn: 'B', // Default to Black stones
-          mode: 'Play', // Default mode
+    katagoMoves: [],  // new
+    currentBoardState: [], // Array to represent the current board state
+    currentNode: null,     // Reference to the current node in the SGF tree
+    rootNode: null,        // Reference to the root node of the SGF tree
+    isCorrect: null,
+    translateX: 0,
+    translateY: 0,
+    scale: 1,
+    boardBaseSize: 624, // Base size of the board at scale 1 (e.g., 19x19 with default cellSize)
+    turn: 'B', // Default to Black stones
+    mode: 'Play', // Default mode
+    gtpCommand: "",
 
       };
   },
@@ -142,24 +152,85 @@ export default {
       // window.removeEventListener('resize', this.calculateScale);
   },
   methods: {
-        updateNodeComment(newComment) {
+    updateNodeComment(newComment) {
       // Update the comment in the current node's props
       this.currentNode.props.C = newComment;
       console.log('Updated comment:', newComment);
     },
 
-  searchByTags() {
-    const tags = this.searchTags.trim();
-    if (tags) {
-      window.location.href = `/problem?tags=${tags}&index=0`;
-    }
-  },
-  loadNextProblem() {
+    // testKataGoWebSocket() {
+    //   const socket = new WebSocket("ws://localhost:8000/ws/katago/");
+    //
+    //   socket.onmessage = (event) => {
+    //     const data = JSON.parse(event.data);
+    //     const line = data.line;
+    //
+    //     if (line.startsWith("info move")) {
+    //       const moveInfo = this.parseInfoMove(line);
+    //       console.log("Parsed move:", moveInfo);
+    //       const existing = this.katagoMoves.find(m => m.move === moveInfo.move);
+    //       if (!existing) this.katagoMoves.push(moveInfo);
+    //
+    //     }
+    //   };
+    //
+    //   socket.onopen = () => {
+    //     console.log("WebSocket connected, sending test data");
+    //     socket.send(JSON.stringify({
+    //       moves: [["b", [3, 3]], ["w", [15, 3]]],
+    //       komi: 7.5
+    //     }));
+    //   };
+    //
+    //   socket.onerror = (e) => {
+    //     console.error("WebSocket error:", e);
+    //   };
+    // },
+    //
+    sendGTPCommand() {
+      if (!this.socket) {
+        this.socket = new WebSocket("ws://localhost:8000/ws/katago/");
+        this.socket.onopen = () => {
+          this.socket.send(this.gtpCommand);
+        };
+      }
+      this.socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const line = data.line;
 
-    const nextIndex = parseInt(this.currentIndex) + 1; // Ensure numeric addition
-    const tags = this.tags; // Include the current tags
-    window.location.href = `/problem?tags=${tags}&index=${nextIndex}`;
-  },
+        this.socket.send(this.gtpCommand);
+      }
+
+    },
+    //
+    // parseInfoMove(line) {
+    //   const parts = line.split(/\s+/);
+    //   const result = {};
+    //   for (let i = 0; i < parts.length; i++) {
+    //     if (parts[i] === "move") result.move = parts[++i];
+    //     else if (parts[i] === "visits") result.visits = parseInt(parts[++i]);
+    //     else if (parts[i] === "winrate") result.winrate = parseFloat(parts[++i]);
+    //     else if (parts[i] === "scoreLead") result.scoreLead = parseFloat(parts[++i]);
+    //     else if (parts[i] === "prior") result.prior = parseFloat(parts[++i]);
+    //     else if (parts[i] === "order") result.order = parseInt(parts[++i]);
+    //     // Add more fields as needed
+    //   }
+    //   return result;
+    // },
+
+
+    searchByTags() {
+      const tags = this.searchTags.trim();
+      if (tags) {
+        window.location.href = `/problem?tags=${tags}&index=0`;
+      }
+    },
+    loadNextProblem() {
+
+      const nextIndex = parseInt(this.currentIndex) + 1; // Ensure numeric addition
+      const tags = this.tags; // Include the current tags
+      window.location.href = `/problem?tags=${tags}&index=${nextIndex}`;
+    },
 
 
 

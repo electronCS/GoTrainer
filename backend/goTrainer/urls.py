@@ -11,5 +11,6 @@ urlpatterns = [
     path('problem/', display_problem_interface, name='display_problem_interface'),
 
     path('controller/save-sgf/', save_sgf_file, name='save_sgf_file'),
+    path("katago-analysis/", views.katago_analysis),
 
 ]

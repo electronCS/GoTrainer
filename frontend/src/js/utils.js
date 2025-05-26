@@ -8,6 +8,25 @@ export function parseCoordinates(coord) {
     return [col, row];
 }
 
+export function katagoCoordToBoardXY(move) {
+  const colLetter = move[0];
+  const rowNumber = parseInt(move.slice(1));
+
+  const col = "ABCDEFGHJKLMNOPQRSTUVWXYZ".indexOf(colLetter); // skip 'I'
+  const row = 19 - rowNumber; // flip for top-origin UI
+  return { x: col, y: row };
+}
+
+export function boardXYToKatagoCoord(coord) {
+  const x = coord[0];
+  const y = coord[1];
+    const letters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"; // no 'I'
+  const colLetter = letters[x]; // x is the column
+  const rowNumber = 19 - y;     // flip Y from top-origin to bottom-origin
+  return `${colLetter}${rowNumber}`;
+}
+
+
 export function safeStringify(obj, space = 2) {
     const seen = new WeakSet();
     return JSON.stringify(obj, (key, value) => {

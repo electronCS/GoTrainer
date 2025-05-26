@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "backend.goTrainer"
 ]
+INSTALLED_APPS += ["channels"]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -75,7 +76,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "goTrainer.wsgi.application"
+# WSGI_APPLICATION = "goTrainer.wsgi.application"
+ASGI_APPLICATION = "goTrainer.asgi.application"  # update with your actual project name
 
 
 # Database

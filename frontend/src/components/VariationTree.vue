@@ -83,10 +83,7 @@ export default {
 },
     methods: {
         computeTreeLayout() {
-            console.log("testing changessss");
             // Convert your rootNode into a hierarchy
-          console.log("d3:", d3);
-          console.log("root node is " + (this.rootNode == null));
           if (this.rootNode == null) {
             return;
           }

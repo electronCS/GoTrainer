@@ -32,6 +32,29 @@ export class Node {
         }
     }
 
+    getMovesToNode(rootNode) {
+      const moves = [];
+      let node = this;
+      console.log("Traversing to node:", node.print && node.print());
+
+      while (node) {
+        if (node.props) {
+          moves.push(node.props);
+        }
+        if (node.parent) {
+          const index = node.parent.children.indexOf(node);
+          if (index !== -1) {
+            node.parent.setNextChild(index); // maintain child index tracking
+          }
+        }
+        if (node === rootNode) break;
+        node = node.parent;
+      }
+
+      return moves.reverse();
+    }
+
+
     print() {
         const parseProps = (props) => {
             const parsed = {};

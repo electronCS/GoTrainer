@@ -3,8 +3,8 @@
     display: grid;
     /*max-width: 100%; !* Prevent it from exceeding the parent's width *!*/
 
-    grid-template-columns: 40px 1fr 40px; /* Left labels, Board, Right labels */
-    grid-template-rows: 40px 1fr 40px;    /* Top labels, Board, Bottom labels */
+    grid-template-columns: 53px 1fr 53px; /* Left labels, Board, Right labels */
+    grid-template-rows: 53px 1fr 53px;    /* Top labels, Board, Bottom labels */
     gap: 0; /* No gaps between grid cells */
     padding: 0; /* Padding handled within label areas */
     background-color: #f5deb3;
@@ -14,7 +14,7 @@
 }
 .board {
     padding-top: 2px;
-    transform: scale(0.98);
+    /*transform: scale(0.98);*/
     /*width: 100%; !* Let it adjust to .board-container's width *!*/
 
     grid-column: 2;
@@ -24,10 +24,10 @@
     border: none; /* Remove if unnecessary */
     transition: transform 0.3s ease;
 }
+
+
 .ghost-stone {
     position: absolute;
-    width: 28px; /* Match stone size */
-    height: 28px; /* Match stone size */
     /*background-color: black; !* Hardcoded to black for now *!*/
     /*opacity: 0.5; !* Make it translucent *!*/
     transform: translate(-50%, -50%); /* Center the stone */
@@ -47,7 +47,7 @@
     opacity: 0.8;
 }
 .ghost-stone-A {
-  font-size: 25px; /* Size of the X */
+  /*font-size: 25px; !* Size of the X *!*/
   text-align: center; /* Center the X horizontally */
     transform: translate(-49%, -49%); /* Center the element */
   font-family: 'Roboto', sans-serif;
@@ -60,8 +60,6 @@
 /*}*/
 .stone {
     position: absolute;
-    width: 29px;
-    height: 29px;
     border-radius: 50%;
     z-index: 2;
     transform: translate(-50%, -50%); /* Centers the stone */
@@ -85,6 +83,53 @@
     border-radius: 4px;
     z-index: 10;
 }
+
+.katago-overlay-circle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+    border-radius: 50% !important; /* this makes it a circle */
+
+  pointer-events: none;
+    border: none; /* <-- remove the border */
+    background-color: rgba(0, 0, 0, 0.15); /* optional ghost shading */
+
+      z-index: 10;
+
+}
+
+.katago-overlay-label {
+  position: absolute;
+  font-size: 10px;
+  color: black;
+    z-index: 10; /* ← this ensures it draws over board lines/star points */
+
+  padding: 1px 3px;
+  border-radius: 3px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.katago-move-blue {
+  /*border-color: blue !important;*/
+  background-color: rgba(15, 215, 211, 0.9) !important; /* blue */
+  /*color: blue !important;*/
+}
+
+.katago-move-green {
+  /*border-color: green !important;*/
+    background-color: rgba(0, 128, 0, 0.9) !important; /* green */
+
+  /*color: green !important;*/
+}
+
+.katago-move-orange {
+      background-color: rgba(255, 165, 0, 0.9) !important; /* orange */
+
+}
+
+
 .circle {
     border: 2px solid currentColor; /* Circle border matches the color of the stone */
     border-radius: 50%; /* Make it a circle */

@@ -162,8 +162,8 @@ def pattern_search(pattern_template, pattern_turn, filepath, katago):
                                 file_path = filepath
                                 correct_answers = [sgf_coord]
 
-                                add_to_dynamodb(problem_id, correct_answers, f"goTrainer/{file_path}", position)
-                                add_to_opensearch(problem_id, file_path, ["testJoseki"])
+                                # add_to_dynamodb(problem_id, correct_answers, f"goTrainer/{file_path}", position)
+                                # add_to_opensearch(problem_id, file_path, ["testJoseki"])
 
                                 displayboard = boards.Board(19)
                                 for color, move in moves:
@@ -172,9 +172,11 @@ def pattern_search(pattern_template, pattern_turn, filepath, katago):
                                         displayboard.play(row, col, color)
                                 print(ascii_boards.render_board(displayboard))
 
+                                print("moves is ", moves)
+
                                 if katago:
                                     print("moves is ", moves)
-                                    result = katago.query(board2, moves, 7.5)
+                                    result = katago.query(board2, moves, 7.5) # board parameter is empty board
                                     print("length is ", len(result["moveInfos"]))
                                     findbest(result["moveInfos"], moves[-2][0])
 
@@ -260,7 +262,7 @@ if __name__ == '__main__':
     # 2 - white (colors for 1 and two are swapped also during search)
     # 3 - anything
     # 4 - candidate move?
-    use_kata = False
+    use_kata = True
     pattern_template = [[0,0,0,1,0,0,-1],
                         [0,0,0,0,0,0,-1],
                         [3,1,1,0,0,0,-1],
@@ -272,7 +274,7 @@ if __name__ == '__main__':
     pattern_turn = 1
 
     if use_kata:
-        katago = KataGo("katago.exe", "katago-gtp80.cfg", "6-23_18block.bin.gz")
+        katago = KataGo("/opt/homebrew/bin/katago", "/opt/homebrew/Cellar/katago/1.16.0/share/katago/configs/analysis_example.cfg", "kata1-b28c512nbt-s8536703232-d4684449769.bin.gz")
     else:
         katago = None
 

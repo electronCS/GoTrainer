@@ -87,8 +87,8 @@ export default {
 
           translateX: 0,
           translateY: 0,
-          scale: 1,
-          boardBaseSize: 624, // Base size of the board at scale 1 (e.g., 19x19 with default cellSize)
+          scale: 1.3,
+          // boardBaseSize: 624, // Base size of the board at scale 1 (e.g., 19x19 with default cellSize)
           turn: 'B', // Default to Black stones
           mode: 'Play', // Default mode
 
@@ -421,7 +421,7 @@ export default {
           this.labels = []; // Keep track of annotations separately
 
           // Get all moves up to and including the current node
-          const moves = this.getMovesToCurrentNode();
+          const moves = this.currentNode.getMovesToNode(this.rootNode);
 
           // Apply each move to the board
           moves.forEach(move => {
@@ -439,32 +439,32 @@ export default {
           this.currentBoardState = this.board.signMap;
       },
 
-      getMovesToCurrentNode() {
-          const moves = [];
-          let node = this.currentNode;
-          console.log("traversing to current node which is " + this.currentNode.print());
-
-          // Traverse up the tree from currentNode to rootNode
-          while (node) {
-              if (node.props) {
-                  moves.push(node.props);  // Add each node's move to the moves array
-              }
-              if (node.parent) {
-                  const index = node.parent.children.indexOf(node);
-                  if (index !== -1) {
-                      node.parent.setNextChild(index); // Update currentChildIndex
-                  }
-              }
-
-              if (node === this.rootNode) {
-                  break;  // Stop when we reach the root node
-              }
-              node = node.parent;  // Move up to the parent node
-          }
-
-          // Reverse the moves to have them in order from root to current node
-          return moves.reverse();
-      },
+      // getMovesToCurrentNode() {
+      //     const moves = [];
+      //     let node = this.currentNode;
+      //     console.log("traversing to current node which is " + this.currentNode.print());
+      //
+      //     // Traverse up the tree from currentNode to rootNode
+      //     while (node) {
+      //         if (node.props) {
+      //             moves.push(node.props);  // Add each node's move to the moves array
+      //         }
+      //         if (node.parent) {
+      //             const index = node.parent.children.indexOf(node);
+      //             if (index !== -1) {
+      //                 node.parent.setNextChild(index); // Update currentChildIndex
+      //             }
+      //         }
+      //
+      //         if (node === this.rootNode) {
+      //             break;  // Stop when we reach the root node
+      //         }
+      //         node = node.parent;  // Move up to the parent node
+      //     }
+      //
+      //     // Reverse the moves to have them in order from root to current node
+      //     return moves.reverse();
+      // },
   }
 }
 </script>

@@ -60,6 +60,7 @@ class KataGo:
         self.query_counter += 1
 
         query["moves"] = [(color,sgfmill_to_str(move)) for color, move in moves]
+        print("gets here")
         query["initialStones"] = []
         for y in range(initial_board.side):
             for x in range(initial_board.side):
@@ -73,6 +74,9 @@ class KataGo:
         query["includePolicy"] = True
         if max_visits is not None:
             query["maxVisits"] = max_visits
+
+        if self.katago.poll() is not None:
+            raise Exception("KataGo process has exited unexpectedly before query")
 
         self.katago.stdin.write((json.dumps(query) + "\n").encode())
         self.katago.stdin.flush()

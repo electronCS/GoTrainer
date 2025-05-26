@@ -4,11 +4,15 @@ from django.http import JsonResponse
 import os
 import boto3
 import logging
+
+from goTrainer.katago_sample import KataGo
 from .models import Board
 from .sgf_utils import read_sgf_file, get_sgf_string
 import json
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
+from django.views.decorators.csrf import csrf_exempt
+from sgfmill import sgf, boards, ascii_boards
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -18,6 +22,50 @@ logger = logging.getLogger(__name__)
 def say_hello(request):
     #return HttpResponse("Hello, World!")
     return render(request, 'index.html', {'name': 'Alan'})
+
+@csrf_exempt
+def katago_analysis(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only"}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        moves = data.get("moves", [])
+        komi = data.get("komi", 7.5)
+        print("in katago analysis, request is ", request.body)
+
+        board = boards.Board(19)
+        empty_board = boards.Board(19)
+
+        for color, move in moves:
+            if move != "pass":
+                board.play(move[0], move[1], color)
+
+        print("board is")
+        print(ascii_boards.render_board(board))
+
+        # ascii_boards.render_board(board)
+        # Convert list-of-lists into list-of-tuples
+        moves = [(color, tuple(coords)) for color, coords in moves]
+
+        print("moves is ", moves)
+
+        model_path = "goTrainer/kata1-b28c512nbt-s8536703232-d4684449769.bin.gz"
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"KataGo model file not found at {model_path}")
+
+        katago = KataGo("/opt/homebrew/bin/katago",
+                        "/opt/homebrew/Cellar/katago/1.16.0/share/katago/configs/analysis_example.cfg",
+                        model_path)
+
+        result = katago.query(empty_board, moves, komi, max_visits=50)
+        katago.close()
+
+        return JsonResponse(result)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 
 def board_view(request):
     board = Board.objects.first()  # Fetch the first board for now (you can expand this later)
