@@ -1,18 +1,62 @@
 <template>
       <div class="board-controller">
+
+        <input
+          type="file"
+          ref="fileInput"
+          style="display: none"
+          accept=".sgf"
+          @change="handleFileUpload"
+        />
+
           <div class="columns">
               <!-- First Column: Board and Controls -->
               <div class="first-column">
                   <div class="board-container-wrapper">
                       <GoBoard
-                          :initial-board-state="currentBoardState"
+                          ref="goBoard"
                           :current-node="currentNode"
                           :translate-x="translateX"
                           :translate-y="translateY"
                           :scale="scale"
                           :ghostMode="boardMode"
-                          @board-clicked="handleBoardClick">
+                          @board-clicked="handleBoardClick"
+                          @pattern-updated="updatePatternInfo">
                       </GoBoard>
+
+
+                    <div v-if="patternSearchInProgress" class="pattern-status">Searching…</div>
+
+<div v-if="patternProgress" class="pattern-progress">
+  {{ patternProgress.scanned }}/{{ patternProgress.total }} — {{ patternProgress.currentFile }}
+</div>
+
+<div v-if="!patternSearchInProgress && patternSearchDone && patternHits.length === 0" class="pattern-no-results">
+  No results found in {{ patternFilesScanned }} files.
+</div>
+
+<div v-if="patternHits.length" class="pattern-hits-container">
+  <div class="pattern-hits-header">
+    {{ patternHits.length }} result{{ patternHits.length !== 1 ? 's' : '' }} found
+  </div>
+  <div class="pattern-hits-scroll">
+    <div
+      v-for="h in patternHits"
+      :key="(h.sgf_file || h.file) + ':' + (h.position_path || h.move_number)"
+      class="pattern-hit-item"
+      @click="loadHit(h)">
+      <span class="hit-filename">{{ (h.sgf_file || h.file || '').split('/').pop().replace(/^__go4go_/, '') }}</span>
+      <span class="hit-move">Move {{ h.move_number || h.moveNumber }}</span>
+    </div>
+  </div>
+</div>
+
+<div v-if="!patternSearchInProgress && patternSearchDone" style="margin-top:6px;">
+  <button class="action-button" @click="onSearchMore" style="font-size:13px; padding:6px 12px;">
+    Search More (next 100 files)
+  </button>
+</div>
+
 
                   </div>
                 <div class="controls">
@@ -29,10 +73,21 @@
               <div class="second-column">
                 <div class="control-panel-container">
 
-                    <ControlPanel
-                      :currentMode="mode"
+<!--                    <ControlPanel-->
+<!--                      :currentMode="mode"-->
+<!--                      @mode-selected="updateMode"-->
+<!--                      @action-selected="handleAction"/>-->
+
+
+                  <ControlPanel
+                    :currentMode="mode"
                       @mode-selected="updateMode"
-                      @action-selected="handleAction"/>
+                    @action-selected="handleAction"
+                    @pattern-search="onPatternSearch"
+                    @clear-pattern="onClearPattern"
+                    @next-to-play-changed="onNextToPlayChanged"
+                  />
+
                 </div>
 
                 <div class="comment-box-container">
@@ -79,16 +134,21 @@ export default {
   data() {
       return {
           sgfData: null,
-          board: Board.fromDimensions(19),
-
-          currentBoardState: [], // Array to represent the current board state
           currentNode: null,     // Reference to the current node in the SGF tree
           rootNode: null,        // Reference to the root node of the SGF tree
+          patternWS: null,
+          patternSearchInProgress: false,
+          patternSearchDone: false,
+          patternFilesScanned: 0,
+          patternLastFile: null,   // last file scanned, for "Search More" pagination
+          patternHits: [],         // streamed results
+          patternProgress: null,   // {scanned, total, currentFile}
+          patternTemplate: [],
+          patternTurn: null,
+          patternNextToPlay: 'B', // 'B' = black to play next, 'W' = white to play next
 
           translateX: 0,
           translateY: 0,
-          scale: 1.3,
-          // boardBaseSize: 624, // Base size of the board at scale 1 (e.g., 19x19 with default cellSize)
           turn: 'B', // Default to Black stones
           mode: 'Play', // Default mode
 
@@ -97,6 +157,9 @@ export default {
   computed: {
     boardMode() {
       console.log("board mode is " + (this.mode === 'Play' ? this.turn : this.mode));
+      if (this.mode === 'Pattern') {
+        return 'Pattern';
+      }
       return this.mode === 'Play' ? this.turn : 'A';
     }
   },
@@ -105,12 +168,9 @@ export default {
           this.loadSgf(window.sgfString);
           console.log("sgf data is " + this.sgfData);
       }
-      // this.calculateScale(); // Calculate initial scale
-      // window.addEventListener('resize', this.calculateScale); // Update scale on window resize
 
   },
   beforeDestroy() {
-      // window.removeEventListener('resize', this.calculateScale);
   },
   methods: {
       updateMode(newMode) {
@@ -126,16 +186,177 @@ export default {
       handleAction(action) {
     console.log(`Action selected: ${action}`);
     if (action === 'Open') {
-      this.openGame();
+      this.$refs.fileInput.click(); // Trigger file picker
     } else if (action === 'Save') {
       this.saveGame();
     } else if (action === 'Game Info') {
       this.showGameInfo();
     }
   },
-  openGame() {
-    console.log('Open game functionality goes here');
+
+    getPatternTurn() {
+  if (!this.currentNode) return 1; // default black
+  if (this.currentNode.props.B) return 2; // last move black → white's turn
+  if (this.currentNode.props.W) return 1; // last move white → black's turn
+  return 1; // fallback
+},
+  handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const sgfText = e.target.result;
+      console.log("sgf text is ", sgfText)
+      this.loadSgf(sgfText);  // Reuse your existing loader
+    };
+    reader.readAsText(file);
   },
+
+  openPatternSocket(appendMode = false) {
+    if (this.patternWS && this.patternWS.readyState === WebSocket.OPEN) return;
+    this.patternWS = new WebSocket("ws://localhost:8000/ws/patternsearch/");
+
+    this.patternWS.onopen = () => {
+      this.patternSearchInProgress = true;
+      this.patternSearchDone = false;
+      if (!appendMode) {
+        this.patternHits = [];
+        this.patternFilesScanned = 0;
+        this.patternLastFile = null;
+      }
+      this.patternErrors = [];
+      this.patternProgress = null;
+      console.log("[Pattern] connected");
+    };
+
+    this.patternWS.onmessage = (evt) => {
+      let msg;
+      try { msg = JSON.parse(evt.data); } catch { return; }
+
+      if (msg.type === "hit") {
+        this.patternHits.push(msg);
+      } else if (msg.type === "progress") {
+        this.patternProgress = msg;
+        if (msg.currentFile) this.patternLastFile = msg.currentFile;
+      } else if (msg.type === "done") {
+        this.patternSearchInProgress = false;
+        this.patternSearchDone = true;
+        this.patternFilesScanned += (msg.scanned || 100);
+        if (msg.lastFile) this.patternLastFile = msg.lastFile;
+      } else if (msg.type === "error") {
+        this.patternErrors = this.patternErrors || [];
+        this.patternErrors.push(msg.message || "Unknown pattern search error");
+      }
+    };
+
+    this.patternWS.onerror = (e) => {
+      console.warn("[Pattern] ws error", e);
+    };
+    this.patternWS.onclose = () => {
+      console.log("[Pattern] disconnected");
+      this.patternSearchInProgress = false;
+    };
+  },
+
+  closePatternSocket() {
+    if (this.patternWS) {
+      try { this.patternWS.close(); } catch {}
+      this.patternWS = null;
+    }
+  },
+
+// "Last move" = who played the most recent stone.
+// Last move = Black → White to play next → pattern_turn=2
+// Last move = White → Black to play next → pattern_turn=1
+getEffectivePatternTurn() {
+  return this.patternNextToPlay === 'B' ? 2 : 1;
+},
+
+onNextToPlayChanged(color) {
+  this.patternNextToPlay = color;
+},
+
+onPatternSearch() {
+  this.closePatternSocket();
+  this.startPatternSearch({
+    patternTemplate: this.patternTemplate,
+    patternTurn: this.getEffectivePatternTurn(),
+    appendMode: false
+  });
+},
+
+onSearchMore() {
+  this.closePatternSocket();
+  this.startPatternSearch({
+    patternTemplate: this.patternTemplate,
+    patternTurn: this.getEffectivePatternTurn(),
+    startAfterFilename: this.patternLastFile,
+    appendMode: true
+  });
+},
+
+onClearPattern() {
+  if (this.$refs.goBoard) {
+    this.$refs.goBoard.clearPattern();
+  }
+  this.patternHits = [];
+  this.patternTemplate = [];
+  this.patternTurn = null;
+  this.patternProgress = null;
+},
+  // --- Kick off a search ---
+  startPatternSearch({ patternTemplate, patternTurn, startAfterFilename=null, appendMode=false }) {
+    console.log("pattern template is ", patternTemplate);
+    this.openPatternSocket(appendMode);
+    if (!this.patternWS || this.patternWS.readyState !== WebSocket.OPEN) {
+      // slight delay if socket is still connecting
+      setTimeout(() => this.startPatternSearch({ patternTemplate, patternTurn, startAfterFilename, appendMode }), 120);
+      return;
+    }
+    const payload = {
+      type: "start",
+      pattern_template: patternTemplate,
+      pattern_turn: patternTurn,
+      start_after_filename: startAfterFilename
+    };
+    this.patternWS.send(JSON.stringify(payload));
+  },
+
+  stopPatternSearch() {
+    // Optional: if you added a “stop” command in your consumer, send it here; otherwise just close the socket.
+    if (this.patternWS && this.patternWS.readyState === WebSocket.OPEN) {
+      this.patternWS.send(JSON.stringify({ command: "stop" })); // only if supported
+    }
+    this.closePatternSocket();
+  },
+
+  // --- Use a hit ---
+  async loadHit(hit) {
+    // hit: { sgf_file, move_number, position_path }
+    const file = hit.sgf_file || hit.file;
+    const resp = await fetch(`/get_sgf?file=${encodeURIComponent(file)}`);
+    const sgf = await resp.text();
+
+    // Clear pattern overlay before loading new game
+    if (this.$refs.goBoard) {
+      this.$refs.goBoard.clearPattern();
+    }
+
+    // 2) Reuse your existing loader
+    this.loadSgf(sgf);
+
+    // 3) Navigate to the position
+    const moveNum = hit.move_number || hit.moveNumber;
+    if (moveNum) {
+      let node = this.rootNode;
+      for (let i = 0; i < moveNum && node && node.children && node.children[0]; i++) {
+        node = node.children[0];
+      }
+      if (node) this.navigateToNode(node);
+    }
+  },
+
     getCsrfToken() {
             const match = document.cookie.match(/csrftoken=([^;]+)/);
             console.log("csrf token is " + (match ? match[1] : null));
@@ -191,6 +412,14 @@ export default {
   showGameInfo() {
     console.log('Game info functionality goes here');
   },
+  updatePatternInfo({patternTemplate, patternTurn}) {
+        console.log("updating pattern info with ", patternTemplate)
+        this.patternTemplate = patternTemplate;
+        this.patternTurn = patternTurn;
+        console.log("pattern template when updating is", this.patternTemplate)
+  },
+
+
 
       handleBoardClick({ x, y }) {
           console.log(`Clicked on (${x}, ${y})`);
@@ -242,8 +471,7 @@ export default {
               console.log(`Added new node: ${JSON.stringify(newNode.props)}`);
           }
 
-          // Update board state and reflect changes on the board
-          this.updateBoardState();
+          this.turn = this.determineNextColor();
       },
 
     addAnnotation(sgfCoord) {
@@ -326,23 +554,6 @@ export default {
       },
 
 
-      // calculateScale() {
-      //     // Get the size of the parent column
-      //     const firstColumn = this.$el.querySelector('.first-column');
-      //     if (firstColumn) {
-      //         const availableWidth = firstColumn.clientWidth;
-      //         const availableHeight = firstColumn.clientHeight;
-      //
-      //         console.log("available width is " + availableWidth + " and available height is " + availableHeight);
-      //
-      //         // Calculate scale based on the smaller of width or height
-      //         const scaleWidth = (availableWidth * 0.98)/ this.boardBaseSize;
-      //         const scaleHeight = availableHeight / this.boardBaseSize;
-      //         this.scale = Math.min(scaleWidth, scaleHeight); // Maintain aspect ratio
-      //         console.log("Updated scale:", this.scale);
-      //     }
-      // },
-
       loadSgf(sgfString) {
           console.log("about to parse sgf which is " + sgfString);
 
@@ -353,12 +564,19 @@ export default {
           this.currentNode = this.rootNode;
           console.log("the current node is " + this.currentNode.print());
 
-          this.updateBoardState();
+          this.turn = this.determineNextColor();
       },
 
       navigateToNode(node) {
+        console.log("in navigate to node");
+          console.log("current node is node? " + (this.currentNode === node) )
           this.currentNode = node;
-          this.updateBoardState();
+          // this.currentNode = null;
+          // this.$nextTick(() => {
+          //   this.currentNode = node; // or this.currentNode.getNextChild() in nextMove
+          // });
+
+          this.turn = this.determineNextColor();
       },
 
       nextMove() {
@@ -366,16 +584,15 @@ export default {
               // this.currentNode = this.currentNode.children[0]; // Move to the next node in the main line
               this.currentNode = this.currentNode.getNextChild();
               console.log("Moved to next node:", this.currentNode.print());
-              this.updateBoardState();
+              this.turn = this.determineNextColor();
 
-              // this.scale += 0.1;
           }
       },
       previousMove() {
           if (this.currentNode && this.currentNode.parent) {
               this.currentNode = this.currentNode.parent; // Move to the previous node (parent)
               console.log("Moved to previous node:", this.currentNode.print());
-              this.updateBoardState();
+              this.turn = this.determineNextColor();
 
           }
       },
@@ -384,7 +601,7 @@ export default {
           if (this.rootNode) {
               this.currentNode = this.rootNode; // Set current node to the root
               console.log("Moved to start of the game.");
-              this.updateBoardState();
+              this.turn = this.determineNextColor();
           }
       },
       goBack10Moves() {
@@ -394,7 +611,7 @@ export default {
               count++;
           }
           console.log(`Moved back ${count} moves.`);
-          this.updateBoardState();
+          this.turn = this.determineNextColor();
       },
       goForward10Moves() {
           let count = 0;
@@ -403,68 +620,16 @@ export default {
               count++;
           }
           console.log(`Moved forward ${count} moves.`);
-          this.updateBoardState();
+          this.turn = this.determineNextColor();
       },
       goToEnd() {
           while (this.currentNode && this.currentNode.children.length > 0) {
               this.currentNode = this.currentNode.getNextChild(); // Move to the next node in the main line
           }
           console.log("Moved to end of the game.");
-          this.updateBoardState();
-      },
-
-      updateBoardState() {
           this.turn = this.determineNextColor();
-
-          // Reset the board
-          this.board = Board.fromDimensions(19);
-          this.labels = []; // Keep track of annotations separately
-
-          // Get all moves up to and including the current node
-          const moves = this.currentNode.getMovesToNode(this.rootNode);
-
-          // Apply each move to the board
-          moves.forEach(move => {
-              if (move.B) {
-                  const [col, row] = parseCoordinates(move.B);
-                  this.board = this.board.makeMove(1, [col, row]); // Black stone (1)
-              }
-              if (move.W) {
-                  const [col, row] = parseCoordinates(move.W);
-                  this.board = this.board.makeMove(-1, [col, row]); // White stone (-1)
-              }
-          });
-
-          // Update the current board state with the board representation
-          this.currentBoardState = this.board.signMap;
       },
 
-      // getMovesToCurrentNode() {
-      //     const moves = [];
-      //     let node = this.currentNode;
-      //     console.log("traversing to current node which is " + this.currentNode.print());
-      //
-      //     // Traverse up the tree from currentNode to rootNode
-      //     while (node) {
-      //         if (node.props) {
-      //             moves.push(node.props);  // Add each node's move to the moves array
-      //         }
-      //         if (node.parent) {
-      //             const index = node.parent.children.indexOf(node);
-      //             if (index !== -1) {
-      //                 node.parent.setNextChild(index); // Update currentChildIndex
-      //             }
-      //         }
-      //
-      //         if (node === this.rootNode) {
-      //             break;  // Stop when we reach the root node
-      //         }
-      //         node = node.parent;  // Move up to the parent node
-      //     }
-      //
-      //     // Reverse the moves to have them in order from root to current node
-      //     return moves.reverse();
-      // },
   }
 }
 </script>

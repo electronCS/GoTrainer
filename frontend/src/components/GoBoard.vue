@@ -1,5 +1,18 @@
 
 <template>
+  <div class="board-outer-wrapper">
+
+    <!-- Winrate bar -->
+    <div v-if="displayWinrate !== null" class="winrate-bar-wrapper">
+      <span class="winrate-label winrate-black">⚫ {{ displayWinrate }}%</span>
+      <div class="winrate-bar">
+        <div class="winrate-fill-black" :style="{ width: displayWinrate + '%' }"></div>
+        <div class="winrate-fill-white" :style="{ width: (100 - displayWinrate) + '%' }"></div>
+      </div>
+      <span class="winrate-label winrate-white">⚪ {{ 100 - displayWinrate }}%</span>
+      <span class="score-lead-label">{{ scoreLeadText }}</span>
+    </div>
+
     <div class="board-container"
          :style = "{
       'grid-template-columns': cellSize * 1.3 + 'px 1fr' + cellSize * 1.3 + 'px',
@@ -29,6 +42,9 @@
       <div class="board"
         @mousemove="handleMouseMove"
         @mouseleave="handleMouseLeave"
+        @mousedown="handleMouseDown"
+        @mouseup="handleMouseUp"
+
       @click="handleMouseClick"
 
            :style="{
@@ -90,6 +106,21 @@
 
           </div>
 
+        <!-- Pattern -->
+
+        <div
+            v-for="(cell, i) in selectedPatternCells"
+            :key="'pattern-cell-' + i"
+            class="pattern-highlight"
+            :style="{
+              top: cell.y * cellSize + 'px',
+              left: cell.x * cellSize + 'px',
+              width: cellSize-1 + 'px',
+              height: cellSize-1 + 'px'
+
+            }"
+          ></div>
+
           <!-- Star Points -->
           <div
               v-for="(point, index) in starPoints"
@@ -115,16 +146,18 @@
               {{ label.isCircle ? '' : label.text }}
           </div>
 
-                <!-- KataGo Suggested Move Overlays -->
-        <div v-for="move in topKatagoMoves" :key="move.move">
+                <!-- KataGo Suggested Move Overlays — skip positions already occupied by a stone -->
+        <template v-for="move in topKatagoMoves" :key="move.move">
+        <div v-if="!sabakiBoard || sabakiBoard.get([katagoCoordToBoardXY(move.move).x, katagoCoordToBoardXY(move.move).y]) === 0">
           <div
             class="katago-overlay-circle"
-            :class="getKataMoveColor(move)"
+            :class="getKataMoveColorClass(move)"
             :style="{
               top: katagoCoordToBoardXY(move.move).y * cellSize + 'px',
               left: katagoCoordToBoardXY(move.move).x * cellSize + 'px',
               width: cellSize-1 + 'px',
-              height: cellSize-1 + 'px'
+              height: cellSize-1 + 'px',
+              ...getKataMoveStyle(move)
             }"
           ></div>
 
@@ -142,6 +175,17 @@
             {{ move.scoreLead.toFixed(1) }}
           </div>
         </div>
+        </template>
+
+<div
+  v-for="(pt, index) in patternVertices"
+  :key="'vertex-' + index"
+  class="pattern-vertex"
+  :style="{
+    top: pt.y * cellSize + 'px',
+    left: pt.x * cellSize + 'px'
+  }">
+</div>
 
 
       </div>
@@ -160,12 +204,15 @@
           </div>
       </div>
   </div>
+  </div><!-- end board-outer-wrapper -->
 </template>
 
 <script>
 
 import {parseCoordinates, katagoCoordToBoardXY, boardXYToKatagoCoord} from "../js/utils";
 import Board from "@sabaki/go-board";
+import {nextTick} from "vue";
+
 
 export default {
   name: 'GoBoard',
@@ -179,12 +226,18 @@ export default {
             [9, 3], [9, 9], [9, 15],
             [15, 3], [15, 9], [15, 15]
         ],
+
+        dragStart: null,
+        dragEnd: null,
+
         katagoMoveMap: {},  // move string -> { scoreLead, visits, winrate, ... }
+        lastKatagoSnapshot: null, // persists last best move so bar stays visible during navigation
         gtpCommandLog: [],
         currentPathMoves: [],
         sabakiBoard: Board.fromDimensions(19),
-
-
+        katagoRunning: false,
+        selectedPatternCells: [],
+        patternVertices: [],
         letters: ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T'],
         numbers: Array.from({length: 19}, (_, i) => 19 - i),
         cellSize: 38,
@@ -195,10 +248,6 @@ export default {
       };
     },
     props: {
-      initialBoardState: {
-          type: Array,  // Changed from Array to Object to match the new structure
-          required: true
-      },
       currentNode: {
           type: Object,
           required: true
@@ -221,10 +270,8 @@ export default {
       },
     },
     mounted() {
-
-        // this.updateCellSize();
         this.connectToKataGo();
-        // this.getBoardFromNode(this.rootNode);
+        window.addEventListener('keydown', this.handleKeyPress);
 
         console.log("cell size is " + this.cellSize);
         console.log("board size is " + this.board_size);
@@ -232,30 +279,24 @@ export default {
         // this.updateCellSize();
         // window.addEventListener('resize', this.updateCellSize);
 
-        // console.log("the initialBoardState upon mount is " + this.initialBoardState);
     },
     beforeDestroy() {
         window.removeEventListener('resize', this.updateCellSize);
+        window.removeEventListener('keydown', this.handleKeyPress);
     },
     watch: {
-      // initialBoardState: {
-      //   handler(newVal, oldVal) {
-      //       this.generateStonePositions();
-      //   },
-      //   deep: true
-      // },
+
       currentNode: {
         handler(newNode, oldNode) {
+          console.log("are new and old the same? " + (newNode === oldNode));
 
-          // const oldMoves = oldNode.getMovesToNode(this.rootNode);
-          // const newMoves = newNode.getMovesToNode(this.rootNode);
           if (oldNode != null && newNode != null && this.katagoSocket != null) {
             this.syncKatagoToNewNode(newNode, oldNode);
 
           }
-            this.generateLabels();
             this.getBoardFromNode(this.rootNode);
             this.generateStonePositions();
+            this.generateLabels();
 
         },
         deep: true
@@ -271,9 +312,8 @@ export default {
 
 computed: {
   topKatagoMoves() {
-    console.log("katago move map is ", this.katagoMoveMap)
     return Object.values(this.katagoMoveMap)
-      .filter(m => m.visits > 10)
+      .filter(m => m.visits > 10 && m.move && m.move !== 'pass')
       .sort((a, b) => {
         if (b.scoreLead !== a.scoreLead) return b.scoreLead - a.scoreLead;
         return b.visits - a.visits;
@@ -282,22 +322,89 @@ computed: {
   },
   bestKatagoMove() {
     return this.topKatagoMoves.length > 0 ? this.topKatagoMoves[0] : null;
+  },
+
+  // Use live best move if available, otherwise fall back to last snapshot
+  effectiveBestMove() {
+    return this.bestKatagoMove || this.lastKatagoSnapshot;
+  },
+
+  // KataGo winrate is from the perspective of the player to move.
+  // Convert to Black's absolute winrate. Returns null if no data ever received.
+  displayWinrate() {
+    if (!this.effectiveBestMove) return null;
+    // Snapshot stores pre-converted absolute values to avoid perspective flip on navigation
+    if (this.effectiveBestMove._absolute) {
+      return Math.round(this.effectiveBestMove.blackWinrate * 100);
+    }
+    const wr = this.effectiveBestMove.winrate;
+    const isBlackToMove = !(this.currentNode?.props?.B);
+    const blackWr = isBlackToMove ? wr : (1 - wr);
+    return Math.round(blackWr * 100);
+  },
+
+  // Score lead from Black's perspective (positive = Black ahead)
+  scoreLeadText() {
+    if (!this.effectiveBestMove) return '';
+    let blackLead;
+    if (this.effectiveBestMove._absolute) {
+      blackLead = this.effectiveBestMove.blackScoreLead;
+    } else {
+      const lead = this.effectiveBestMove.scoreLead;
+      const isBlackToMove = !(this.currentNode?.props?.B);
+      blackLead = isBlackToMove ? lead : -lead;
+    }
+    const prefix = blackLead >= 0 ? 'B' : 'W';
+    return `${prefix} +${Math.abs(blackLead).toFixed(1)}`;
   }
 
 },
 
     methods: {
-      katagoCoordToBoardXY,
+
+      clearPattern() {
+        this.patternVertices = [];
+        this.selectedPatternCells = [];
+      },
+
+      katagoCoordToBoardXY(coord) {
+        return katagoCoordToBoardXY(coord);
+      },
+
+      handleKeyPress(event) {
+        if (event.code === 'Space') {
+          event.preventDefault(); // prevent page scroll
+          if (!this.katagoSocket) return;
+
+          if (this.katagoRunning) {
+            this.katagoSocket.send("stop");
+          } else {
+            let nextColor = 'b';
+            if (this.currentNode?.props) {
+              if (this.currentNode.props.B) nextColor = 'w';
+              else if (this.currentNode.props.W) nextColor = 'b';
+            }
+            this.katagoSocket.send(`kata-analyze ${nextColor} 10`);
+          }
+          this.katagoRunning = !this.katagoRunning;
+        }
+      },
+
+      getPatternTurn() {
+        // 1 = black to play, 2 = white to play
+        let nextColor = 'b';
+        if (this.currentNode?.props?.B) nextColor = 'w';
+        else if (this.currentNode?.props?.W) nextColor = 'b';
+        return nextColor === 'b' ? 1 : 2;
+      },
+
+
       connectToKataGo() {
         this.katagoSocket = new WebSocket("ws://localhost:8000/ws/katago/");
 
         this.katagoSocket.onopen = () => {
-          console.log("KataGo WebSocket connected.");
-          // Optional: send command automatically
           this.katagoSocket.send("clear_board");
           this.katagoSocket.send("time_settings 0 2 1");
-          // this.katagoSocket.send("play b Q16");
-          // this.katagoSocket.send("kata-analyze w 10");
         };
 
         this.katagoSocket.onmessage = (event) => {
@@ -308,7 +415,6 @@ computed: {
 
           // Split on "info move", add it back to each part
           const chunks = line.split(/info move\s+/).filter(Boolean);
-          console.log("got katago message")
           for (const chunk of chunks) {
             const fullLine = "info move " + chunk.trim();
             const moveInfo = this.parseInfoMove(fullLine);
@@ -325,31 +431,127 @@ computed: {
         };
       },
 
-      getKataMoveColor(move) {
-        // if (!this.bestKatagoMove) return "katago-move-orange";
+      buildPatternTemplate() {
+        if (!this.selectedPatternCells || this.selectedPatternCells.length === 0) return [];
 
+        const xs = this.selectedPatternCells.map(pt => pt.x);
+        const ys = this.selectedPatternCells.map(pt => pt.y);
+        const minX = Math.min(...xs);
+        const minY = Math.min(...ys);
+        const maxX = Math.max(...xs);
+        const maxY = Math.max(...ys);
+
+        const width = maxX - minX + 1;
+        const height = maxY - minY + 1;
+
+        // Initialize with 3 (wildcard) — cells outside the selection are "don't care"
+        // -1 is reserved for actual board borders and should never be set by user clicks
+        const pattern = Array.from({ length: height }, () =>
+          Array.from({ length: width }, () => 3)
+        );
+
+        for (const { x, y } of this.selectedPatternCells) {
+          const color = this.sabakiBoard.get([x, y]); // x col, y row (sabaki: 1=black, -1=white, 0=empty)
+
+          let mapped;
+          if (color === 1) {
+            mapped = 1;  // black stone
+          } else if (color === -1) {
+            mapped = 2;  // white stone
+          } else if (x === 0 || x === this.board_size - 1 || y === 0 || y === this.board_size - 1) {
+            // Empty cell on the actual board edge → treat as board border
+            mapped = -1;
+          } else {
+            mapped = 0;  // empty interior intersection
+          }
+
+          pattern[y - minY][x - minX] = mapped;
+        }
+
+        console.log("Generated pattern template:", pattern);
+        return pattern;
+      },
+
+      // Returns a CSS class for blue/green/orange fixed colors, or null for the gradient range
+      getKataMoveColorClass(move) {
+        if (!this.bestKatagoMove) return 'katago-move-orange';
         const leadDiff = this.bestKatagoMove.scoreLead - move.scoreLead;
         const winrateDiff = this.bestKatagoMove.winrate - move.winrate;
-
-        if (move.move === this.bestKatagoMove.move) {
-          return "katago-move-blue";
-        } else if (leadDiff <= 0.2 || winrateDiff <= 0.01) {
-          return "katago-move-green";
-        } else {
-          return "katago-move-orange";
-        }
+        if (move.move === this.bestKatagoMove.move) return 'katago-move-blue';
+        if (leadDiff <= 0.5 || winrateDiff <= 0.02) return 'katago-move-green';
+        if (leadDiff > 5) return 'katago-move-orange';
+        return null; // gradient range — handled by inline style
       },
+
+      // Returns inline backgroundColor for the yellow→orange gradient zone (leadDiff 0.5–5)
+      // Derived from the dataset: hue 66°→36°, sat 80%→68%, lightness 45%→52%
+      getKataMoveStyle(move) {
+        if (!this.bestKatagoMove) return {};
+        const leadDiff = this.bestKatagoMove.scoreLead - move.scoreLead;
+        const winrateDiff = this.bestKatagoMove.winrate - move.winrate;
+        if (move.move === this.bestKatagoMove.move) return {};
+        if (leadDiff <= 0.5 || winrateDiff <= 0.02) return {};
+        if (leadDiff > 5) return {};
+        // t goes 0→1 as leadDiff goes 0.5→5
+        const t = Math.min(1, Math.max(0, (leadDiff - 0.5) / 4.5));
+        const hue = Math.round(66 - 30 * t);          // 66° → 36°
+        const sat = Math.round(80 - 12 * t);           // 80% → 68%
+        const lit = Math.round(45 + 7 * t);            // 45% → 52%
+        return { backgroundColor: `hsla(${hue}, ${sat}%, ${lit}%, 0.9)` };
+      },
+
+      // handleMouseDown(event) {
+      //   if (this.boardMode !== 'Pattern') return;
+      //
+      //   const rect = event.currentTarget.getBoundingClientRect(); // Board's position
+      //   const x = Math.floor((event.clientX - rect.left + this.cellSize / 2) / this.cellSize);
+      //   const y = Math.floor((event.clientY - rect.top + this.cellSize / 2) / this.cellSize);
+      //   const coords = {x,y};
+      //
+      //   if (coords) this.dragStart = coords;
+      // },
+
+      // handleMouseUp(event) {
+      //   if (this.boardMode !== 'Pattern' || !this.dragStart || !this.dragEnd) return;
+      //
+      //   const xMin = Math.min(this.dragStart.x, this.dragEnd.x);
+      //   const xMax = Math.max(this.dragStart.x, this.dragEnd.x);
+      //   const yMin = Math.min(this.dragStart.y, this.dragEnd.y);
+      //   const yMax = Math.max(this.dragStart.y, this.dragEnd.y);
+      //
+      //
+      //   this.selectedPatternCells = [];
+      //   for (let x = xMin; x <= xMax; x++) {
+      //     for (let y = yMin; y <= yMax; y++) {
+      //       this.selectedPatternCells.push({ x, y });
+      //     }
+      //   }
+      //     console.log("Mouse up at", x, y);
+      //
+      //
+      //   this.dragStart = null;
+      //   this.dragEnd = null;
+      // },
+
+
       handleMouseMove(event) {
         const rect = event.currentTarget.getBoundingClientRect(); // Board's position
         const x = Math.floor((event.clientX - rect.left + this.cellSize / 2) / this.cellSize);
         const y = Math.floor((event.clientY - rect.top + this.cellSize / 2) / this.cellSize);
+
+        if (this.ghostMode === 'Pattern') {
+          const coords = {x,y};
+          if (coords) this.dragEnd = coords;
+        }
+
 
         // Ensure hover stays within the board bounds
         if (x >= 0 && x < this.board_size && y >= 0 && y < this.board_size) {
           // Check if there's an existing stone and ghostMode is 'B' or 'W'
           if (this.ghostMode === 'A' || this.ghostMode === '1') {
             this.hoveredPosition = {x, y};
-          } else if ((this.ghostMode === 'B' || this.ghostMode === 'W') && this.initialBoardState[y][x] === 0) {
+          } else if ((this.ghostMode === 'B' || this.ghostMode === 'W') && this.sabakiBoard.get([x,y]) === 0) {
+
             this.hoveredPosition = {x, y};
           } else {
             this.hoveredPosition = null;
@@ -361,15 +563,72 @@ computed: {
       handleMouseLeave() {
         this.hoveredPosition = null; // Clear hover state
       },
+
+      isInsidePolygon(p, poly, EPS = 1e-9) {
+        let inside = false;
+
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const xi = poly[i].x,  yi = poly[i].y;
+          const xj = poly[j].x,  yj = poly[j].y;
+
+          // ───────────── 1. Border check ─────────────
+          // Cross-product == 0  ➜  p, (xi,yi) and (xj,yj) are colinear
+          const cross = (p.x - xi) * (yj - yi) - (p.y - yi) * (xj - xi);
+          if (Math.abs(cross) < EPS &&
+              p.x >= Math.min(xi, xj) - EPS && p.x <= Math.max(xi, xj) + EPS &&
+              p.y >= Math.min(yi, yj) - EPS && p.y <= Math.max(yi, yj) + EPS) {
+            return true;                    // p lies exactly on this edge
+          }
+
+          // ───────────── 2. Ray-casting toggle ─────────────
+          const intersects = ((yi > p.y) !== (yj > p.y)) &&
+                             (p.x < (xj - xi) * (p.y - yi) / (yj - yi) + xi);
+          if (intersects) inside = !inside;
+        }
+
+        return inside;
+      },
+
+      updatePatternArea() {
+        const inside = [];
+
+        for (let y = 0; y < this.board_size; y++) {
+          for (let x = 0; x < this.board_size; x++) {
+            if (this.isInsidePolygon({ x, y }, this.patternVertices)) {
+              inside.push({ x, y });
+            }
+          }
+        }
+        this.selectedPatternCells = inside;
+
+        let array = this.buildPatternTemplate()
+        let turn = this.getPatternTurn();
+        this.$emit('pattern-updated', {patternTemplate: array, patternTurn: turn});
+
+        console.log("array is:", array);
+      },
+
+
       handleMouseClick(event) {
         const rect = event.currentTarget.getBoundingClientRect(); // Board's position
         const x = Math.floor((event.clientX - rect.left + this.cellSize / 2) / this.cellSize);
         const y = Math.floor((event.clientY - rect.top + this.cellSize / 2) / this.cellSize);
 
+        if (this.ghostMode === 'Pattern') {
+          this.patternVertices.push({ x, y });
+          console.log("Added vertex:", x, y);
+          console.log("vertices are ", this.patternVertices);
+
+          if (this.patternVertices.length >= 3) {
+            this.updatePatternArea(); // See next step
+          }
+          return;
+        }
         // Ensure the click is within board bounds
         if (x >= 0 && x < this.board_size && y >= 0 && y < this.board_size) {
           // Block clicks on existing stones if ghostMode is 'B' or 'W'
-          if ((this.ghostMode === 'B' || this.ghostMode === 'W') && this.initialBoardState[y][x] !== 0) {
+          if ((this.ghostMode === 'B' || this.ghostMode === 'W') && this.sabakiBoard.get([x,y]) !== 0) {
+
             console.log(`Click blocked at (${x}, ${y}) - Stone already exists.`);
             return;
           }
@@ -378,32 +637,6 @@ computed: {
           console.log(`Clicked coordinate: (${x}, ${y})`);
           this.$emit('board-clicked', {x, y}); // Emit event with coordinates
           this.hoveredPosition = null; // Clear hover state
-
-          // Convert (x, y) to GTP coordinate
-          const colLetter = this.letters[x];       // 'A'...'T' (skipping I)
-          const rowNumber = 19 - y;                // Flip Y for bottom-up
-
-          const gtpCoord = `${colLetter}${rowNumber}`;
-          const color = this.ghostMode.toLowerCase();  // 'b' or 'w'
-
-          // if (this.katagoSocket) {
-          //   let gtpCmd = `play ${color} ${gtpCoord}`;
-          //   console.log("Sending to KataGo:", gtpCmd);
-          //   this.katagoSocket.send(gtpCmd);
-          //   this.gtpCommandLog.push(`[${new Date().toLocaleTimeString()}] ${gtpCmd}`);
-          //
-          //
-          //   // Optional: re-analyze after move
-          //   this.katagoMoves = [];  // clear previous analysis
-          //   gtpCmd = "kata-analyze " + (color === "b" ? "w" : "b") + " 100";
-          //   this.katagoSocket.send(gtpCmd);
-          //
-          //   this.gtpCommandLog.push(`[${new Date().toLocaleTimeString()}] ${gtpCmd}`);
-          //
-          //   console.log("clicked move, reseting katagoMoveMap");
-          //   this.katagoMoveMap = {};
-          //
-          // }
 
         }
       },
@@ -454,8 +687,6 @@ computed: {
         const newMoves = newNode.getMovesToNode(this.rootNode);
 
         const oldMoves = oldNode.getMovesToNode(this.rootNode);
-        console.log("oldMoves length is " + oldMoves.length);
-        console.log("newMoves length is " + newMoves.length);
 
         let commonPrefixLen = 0;
         while (
@@ -465,16 +696,52 @@ computed: {
             ) {
           commonPrefixLen++;
         }
+        console.log("old moves is ", oldMoves)
+        console.log("new moves is ", newMoves)
+
+        console.log("commonPrefixLen is " + commonPrefixLen);
 
         const undoCount = oldMoves.length - commonPrefixLen;
         const replayMoves = newMoves.slice(commonPrefixLen);
 
-        for (let i = 0; i < undoCount; i++) {
-          this.katagoSocket.send("undo");
-          console.log("sending to katago: undo");
+        if (commonPrefixLen === 0) {
+          this.katagoSocket.send("clear_board");
+          // replay ALL moves for new position
+          for (const move of newMoves) {
+            if (!move.B && !move.W) continue;
+            const color = move.B ? 'b' : 'w';
+            const coord = move.B ? move.B : move.W;
+            const kataCoord = boardXYToKatagoCoord(parseCoordinates(coord));
+            if (coord !== "pass") {
+              this.katagoSocket.send(`play ${color} ${kataCoord}`);
+            }
+          }
+          if (this.katagoRunning) {
+            const nextColor = this.currentNode.props.B ? 'w' : 'b';
+            this.katagoSocket.send(`kata-analyze ${nextColor} 10`);
+          }
+          // Save absolute (Black-perspective) values using the OLD node's perspective
+          // (winrate was computed for the old position, this.currentNode is already the new node)
+          if (this.bestKatagoMove) {
+            const wasBlackToMove = !(oldNode?.props?.B);
+            this.lastKatagoSnapshot = {
+              blackWinrate: wasBlackToMove ? this.bestKatagoMove.winrate : (1 - this.bestKatagoMove.winrate),
+              blackScoreLead: wasBlackToMove ? this.bestKatagoMove.scoreLead : -this.bestKatagoMove.scoreLead,
+              _absolute: true
+            };
+          }
+          this.katagoMoveMap = {};
+          return;
+        } else {
+          for (let i = 0; i < undoCount; i++) {
+            this.katagoSocket.send("undo");
+            console.log("sending to katago: undo");
+          }
         }
 
+
         console.log("replay move is " + JSON.stringify(replayMoves, null, 2));
+        // return;
         for (const move of replayMoves) {
           const color = move.B ? 'b' : 'w';
           const coord = move.B ? move.B : move.W;
@@ -484,20 +751,23 @@ computed: {
           console.log("kata coord is " + kataCoord)
           if (coord !== "pass") {
             this.katagoSocket.send(`play ${color} ${kataCoord}`);
-                        console.log(`Sending to katago: play ${color} ${kataCoord}`);
 
-            // this.logGTPCommand(`play ${color} ${gtpMove}`);
           }
         }
 
-        let nextColor = this.currentNode.props.B ? 'w' : 'b'; // default
-
-        // if (this.currentNode?.props) {
-        //   if (this.currentNode.props.B) nextColor = 'w';
-        //   else if (this.currentNode.props.W) nextColor = 'b';
-        // }
-
-        this.katagoSocket.send(`kata-analyze ${nextColor} 100`);
+        if (this.katagoRunning) {
+          let nextColor = this.currentNode.props.B ? 'w' : 'b'; // default
+          this.katagoSocket.send(`kata-analyze ${nextColor} 10`);
+        }
+        // Save absolute (Black-perspective) values using the OLD node's perspective
+        if (this.bestKatagoMove) {
+          const wasBlackToMove = !(oldNode?.props?.B);
+          this.lastKatagoSnapshot = {
+            blackWinrate: wasBlackToMove ? this.bestKatagoMove.winrate : (1 - this.bestKatagoMove.winrate),
+            blackScoreLead: wasBlackToMove ? this.bestKatagoMove.scoreLead : -this.bestKatagoMove.scoreLead,
+            _absolute: true
+          };
+        }
         this.katagoMoveMap = {};
 
         // this.logGTPCommand("kata-analyze b");
@@ -548,8 +818,8 @@ computed: {
             labelPositions.add(`${row},${col}`); // Track the labeled positions
 
             // Check if a stone is at this position
-            // const stone = this.initialBoardState.find(stone => stone.row === row && stone.col === col);
-            const stone = this.initialBoardState[row][col]; // -1 for white, 1 for black, 0 for empty
+            const stone = this.sabakiBoard.get([col,row]); // -1 for white, 1 for black, 0 for empty
+
             let labelColor = 'black'; // Default label color
             let backgroundColor = 'rgba(245, 222, 179, 0.7)'; // Light background with some opacity
 
@@ -579,9 +849,9 @@ computed: {
 
           // Only add a circle if no label exists at this position
           if (!labelPositions.has(`${row},${col}`)) {
-            const stone = this.initialBoardState[row][col];
-            const circleColor = stone === 1 ? 'white' : 'black'; // Match the stone color for the circle
+            const stone = this.sabakiBoard.get([col, row]);
 
+            const circleColor = stone === 1 ? 'white' : 'black'; // Match the stone color for the circle
             labels.push({
               text: '', // No text, just a circle
               row: row,
@@ -597,3 +867,69 @@ computed: {
   }
 
 </script>
+
+<style scoped>
+.board-outer-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── Winrate bar ── */
+.winrate-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 720px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
+.winrate-bar {
+  flex: 1;
+  display: flex;
+  height: 18px;
+  border-radius: 9px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.25);
+}
+
+.winrate-fill-black {
+  background: #1a1a1a;
+  transition: width 0.4s ease;
+  height: 100%;
+}
+
+.winrate-fill-white {
+  background: #e8e8e8;
+  transition: width 0.4s ease;
+  height: 100%;
+}
+
+.winrate-label {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 52px;
+}
+
+.winrate-black {
+  color: #222;
+  text-align: right;
+}
+
+.winrate-white {
+  color: #555;
+  text-align: left;
+}
+
+.score-lead-label {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #444;
+  min-width: 52px;
+}
+</style>

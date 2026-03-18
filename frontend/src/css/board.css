@@ -52,6 +52,27 @@
     transform: translate(-49%, -49%); /* Center the element */
   font-family: 'Roboto', sans-serif;
 }
+
+.pattern-highlight {
+  position: absolute;
+  background-color: rgba(0, 200, 255, 0.3);
+    transform: translate(-50%, -50%); /* Centers the stone */
+
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.pattern-vertex {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(0, 128, 255, 0.8); /* light blue */
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 5;
+}
+
 /*.ghost-stone-1 {*/
 /*  font-size: 25px; !* Size of the X *!*/
 /*  text-align: center; !* Center the X horizontally *!*/
@@ -61,7 +82,7 @@
 .stone {
     position: absolute;
     border-radius: 50%;
-    z-index: 2;
+    z-index: 15; /* above katago overlays (z-index: 10) */
     transform: translate(-50%, -50%); /* Centers the stone */
 }
 .star-point {
@@ -112,21 +133,17 @@
 }
 
 .katago-move-blue {
-  /*border-color: blue !important;*/
-  background-color: rgba(15, 215, 211, 0.9) !important; /* blue */
-  /*color: blue !important;*/
+  background-color: rgba(10, 214, 210, 0.9) !important; /* #0ad6d2 — top move */
 }
 
 .katago-move-green {
-  /*border-color: green !important;*/
-    background-color: rgba(0, 128, 0, 0.9) !important; /* green */
-
-  /*color: green !important;*/
+  background-color: rgba(32, 215, 6, 0.9) !important; /* #20d706 — near-best */
 }
 
-.katago-move-orange {
-      background-color: rgba(255, 165, 0, 0.9) !important; /* orange */
+/* .katago-move-gradient is set via inline style computed in JS */
 
+.katago-move-orange {
+  background-color: rgba(217, 154, 49, 0.9) !important; /* #d99a31 — poor move */
 }
 
 

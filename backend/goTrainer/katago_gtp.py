@@ -12,21 +12,42 @@ class KataGoGTP:
             bufsize=1  # Line-buffered
         )
         self.lock = threading.Lock()
+        self._callbacks = []
+        self._reader_started = False
+        self._start_reader()
 
-    def send(self, command):
-        with self.lock:
-            self.katago.stdin.write(command + "\n")
-            self.katago.stdin.flush()
-
-    def read_lines(self, callback):
+    def _start_reader(self):
+        """Start a single stdout reader thread that fans out to all registered callbacks."""
+        if self._reader_started:
+            return
+        self._reader_started = True
         def loop():
             print("[KataGoGTP] Starting read loop...")
             for line in self.katago.stdout:
-                # print("[KataGoGTP] stdout:", line.strip())  # log every line
-
                 if line.startswith("info move"):
-                    callback(line.strip())
+                    stripped = line.strip()
+                    for cb in list(self._callbacks):
+                        try:
+                            cb(stripped)
+                        except Exception:
+                            pass
         threading.Thread(target=loop, daemon=True).start()
+
+    def is_alive(self):
+        return self.katago.poll() is None
+
+    def send(self, command):
+        with self.lock:
+            try:
+                self.katago.stdin.write(command + "\n")
+                self.katago.stdin.flush()
+            except (BrokenPipeError, OSError):
+                print("[KataGoGTP] Broken pipe — KataGo process died")
+                # Don't raise; caller will handle reconnection
+
+    def read_lines(self, callback):
+        """Register a callback. Replaces any existing callback (one active connection at a time)."""
+        self._callbacks = [callback]
 
     def close(self):
         self.katago.terminate()

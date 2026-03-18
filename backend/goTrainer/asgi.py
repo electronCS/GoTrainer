@@ -3,7 +3,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.sessions import SessionMiddlewareStack
 from django.core.asgi import get_asgi_application
 from django.urls import path
-from backend.goTrainer.websocket_handlers import KataGoConsumer  # we'll write this next
+from backend.goTrainer.websocket_handlers import KataGoConsumer, PatternSearchConsumer
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.goTrainer.settings")
 
@@ -12,6 +12,8 @@ application = ProtocolTypeRouter({
     "websocket": SessionMiddlewareStack(
         URLRouter([
             path("ws/katago/", KataGoConsumer.as_asgi()),
+            path("ws/patternsearch/", PatternSearchConsumer.as_asgi()),
+
         ])
     ),
 })

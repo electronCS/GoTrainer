@@ -13,7 +13,7 @@ from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 from django.views.decorators.csrf import csrf_exempt
 from sgfmill import sgf, boards, ascii_boards
-
+from goTrainer.pattern_search import pattern_search
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -66,6 +66,20 @@ def katago_analysis(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+@csrf_exempt
+def pattern_search_api(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only"}, status=405)
+
+    data = json.loads(request.body)
+    pattern_template = data.get("pattern_template")
+    pattern_turn = data.get("pattern_turn", 1)
+
+    # Your core pattern_search() function, but should yield/return results as a list
+    # Let's say you modify pattern_search to return a list of dicts:
+    # [{ "sgf_file": "...", "move_sequence": [...], "correct_answer": "...", "position_index": ... }, ...]
+    matches = pattern_search(pattern_template, pattern_turn)
+    return JsonResponse({"matches": matches})
 
 def board_view(request):
     board = Board.objects.first()  # Fetch the first board for now (you can expand this later)
@@ -187,6 +201,27 @@ def save_sgf_file(request):
 
 def get_problem(request):
     pass
+
+def get_sgf(request):
+    """Serve an SGF file's contents by path (for pattern search hit navigation)."""
+    file_path = request.GET.get('file', '')
+    if not file_path:
+        return JsonResponse({"error": "No file specified"}, status=400)
+    # Basic security: only allow files within the project directory
+    import os
+    abs_path = os.path.abspath(file_path)
+    project_root = os.path.abspath('.')
+    if not abs_path.startswith(project_root):
+        return JsonResponse({"error": "Access denied"}, status=403)
+    try:
+        from .sgf_utils import get_sgf_string
+        sgf_string = get_sgf_string(file_path)
+        from django.http import HttpResponse
+        return HttpResponse(sgf_string, content_type='text/plain')
+    except FileNotFoundError:
+        return JsonResponse({"error": f"File not found: {file_path}"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
     # sgf_file = "goTrainer/problems.sgf"  # Replace with your actual SGF file path
     # try:
     #     # Load and parse SGF file

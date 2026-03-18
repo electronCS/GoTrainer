@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import board_view, display_board_controller, display_board, save_sgf_file, get_problem, display_problem_interface
+from .views import board_view, display_board_controller, display_board, save_sgf_file, pattern_search_api, display_problem_interface, get_sgf
 
 urlpatterns = [
     path('hello/', views.say_hello),
@@ -12,5 +12,6 @@ urlpatterns = [
 
     path('controller/save-sgf/', save_sgf_file, name='save_sgf_file'),
     path("katago-analysis/", views.katago_analysis),
-
+    path('pattern_search/', pattern_search_api, name="pattern_search_api"),
+    path('get_sgf', get_sgf, name='get_sgf'),
 ]

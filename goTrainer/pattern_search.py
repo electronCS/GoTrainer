@@ -6,11 +6,11 @@ from requests_aws4auth import AWS4Auth
 import boto3
 
 from sgfmill import sgf, boards, ascii_boards
-from katago_sample import KataGo
+from goTrainer.katago_sample import KataGo
 import numpy as np
+import inspect
 
 problem_id_num = 0
-
 
 def print_board(board):
     board_ascii = {-1: '', 0:'.', 1: 'O', 2: 'X', 3: '.'}
@@ -90,17 +90,47 @@ def findbest(moveInfo, color):
     print(f"best move for {color} is {best_move['move']} with score lead {best_score}")
     print(best_move)
 
+def pattern_search_collect(pattern_template, pattern_turn, filepath, katago=None):
+    return list(pattern_search_stream(pattern_template, pattern_turn, filepath, katago=None))
 
-def pattern_search(pattern_template, pattern_turn, filepath, katago):
+def pattern_search(pattern_template, pattern_turn, filepath=None, katago=None, stream=False):
+    """
+    Unified entry point for pattern search.
+    - If filepath is given, searches that single file.
+    - If stream=True, returns a generator; otherwise returns a list.
+    - If no filepath, scans the entire go4go_collection directory.
+    """
+    directory = 'goTrainer/go4go_collection'
+    if filepath:
+        files = [filepath]
+    else:
+        files = [os.path.join(directory, f) for f in os.listdir(directory)
+                 if os.path.isfile(os.path.join(directory, f))]
+
+    def _gen():
+        for fp in files:
+            try:
+                for hit in pattern_search_stream(pattern_template, pattern_turn, fp, katago=katago):
+                    yield hit
+            except Exception:
+                pass
+
+    if stream:
+        return _gen()
+    else:
+        return list(_gen())
+
+def pattern_search_stream(pattern_template, pattern_turn, filepath, katago=None):
+
     global problem_id_num
+
     f = open(filepath, 'rb')
     game = sgf.Sgf_game.from_bytes(f.read())
 
-    # all_patterns_b = generate_orientations(pattern_template)
-    # all_patterns_w = generate_orientations(reverse_pattern_colors(pattern_template))
-
-    all_patterns_b = generate_orientations_with_answer(pattern_template)
-    all_patterns_w = generate_orientations_with_answer(reverse_pattern_colors(pattern_template))
+    # generate_orientations returns plain 2D arrays; wrap each with a dummy (0,0) marker
+    # so the loop can unpack (pattern, (rel_x, rel_y)) uniformly
+    all_patterns_b = [(p, (0, 0)) for p in generate_orientations(pattern_template)]
+    all_patterns_w = [(p, (0, 0)) for p in generate_orientations(reverse_pattern_colors(pattern_template))]
     all_patterns = [all_patterns_b, all_patterns_w]
     board = generate_board_with_borders(19)
     move_num = 0
@@ -110,6 +140,7 @@ def pattern_search(pattern_template, pattern_turn, filepath, katago):
 
     relative_x = 0
     relative_y = 2
+    results = []
     for node in game.get_main_sequence():
         move = node.get_move()
 
@@ -120,6 +151,7 @@ def pattern_search(pattern_template, pattern_turn, filepath, katago):
         coor = (move[1][0] + 1, move[1][1] + 1)
         move_num += 1
 
+
         if move[0] == 'b':
             color_code = 1
             board[coor[0]][coor[1]] = 1
@@ -127,21 +159,47 @@ def pattern_search(pattern_template, pattern_turn, filepath, katago):
             color_code = 2
             board[coor[0]][coor[1]] = 2
 
-        for pattern, (rel_x, rel_y) in all_patterns[color_code == pattern_turn]:
+
+        # pattern_turn=2 means "White to play next" (either color just played)
+        # pattern_turn=1 means "Black to play next"
+        # For "White to play": use all_patterns[color_code-1]
+        #   - color_code=1 (black just played) → all_patterns[0] = original  (finds [B W' E])
+        #   - color_code=2 (white just played) → all_patterns[1] = swapped   (finds [W B' E])
+        # For "Black to play": use all_patterns[2-color_code]  (opposite index)
+        #   - color_code=1 (black just played) → all_patterns[1] = swapped   (finds [W B' E] for black-to-play)
+        #   - color_code=2 (white just played) → all_patterns[0] = original  (finds [B W' E] for black-to-play)
+        if pattern_turn == 2:  # White to play
+            patterns_to_check = all_patterns[color_code - 1]
+        else:  # Black to play
+            patterns_to_check = all_patterns[2 - color_code]
+        for pattern, (rel_x, rel_y) in patterns_to_check:
+            matched = False
             for i in range(len(pattern)):
+                if matched:
+                    break
                 for j in range(len(pattern[0])):
                     if pattern[i][j] == color_code:
-                        temp_board = [row[coor[1] - j: coor[1] - j + len(pattern[0])] for row in
-                                      board[coor[0] - i: coor[0] - i + len(pattern)]]
                         if (coor[0] - i >= 0 and coor[0] - i + len(pattern) <= len(board) and
                                 coor[1] - j >= 0 and coor[1] - j + len(pattern[0]) <= len(board[0])):
                             temp_board = [row[coor[1] - j: coor[1] - j + len(pattern[0])] for row in
                                           board[coor[0] - i: coor[0] - i + len(pattern)]]
 
                             if matches_pattern(temp_board, pattern):
-
+                                matched = True
 
                                 print(f"found pattern on move {move_num} in {filepath}")
+                                position_path = "/".join(["0"] * move_num)
+                                hit = {"sgf_file": filepath, "move_number": move_num, "position_path": position_path}
+
+                                yield hit
+                                #
+                                # results.append({
+                                #     "sgf_file": filepath,
+                                #     "position_path": position_path,
+                                #     "move_number": move_num,  # optional, for debugging/UI
+                                #     # add other info as needed, like correct answer, color, etc.
+                                # })
+
                                 node.add_comment_text("found pattern")
 
                                 final_x = coor[0] - i + rel_x
@@ -181,8 +239,8 @@ def pattern_search(pattern_template, pattern_turn, filepath, katago):
                                     findbest(result["moveInfos"], moves[-2][0])
 
 
-
     f.close()
+    return results
 
 def matches_pattern(board_slice, pattern):
     for i in range(len(pattern)):
@@ -262,14 +320,18 @@ if __name__ == '__main__':
     # 2 - white (colors for 1 and two are swapped also during search)
     # 3 - anything
     # 4 - candidate move?
-    use_kata = True
-    pattern_template = [[0,0,0,1,0,0,-1],
-                        [0,0,0,0,0,0,-1],
-                        [3,1,1,0,0,0,-1],
-                        [2,1,2,1,0,0,-1],
-                        [0,2,2,2,0,0,-1],
-                        [0,0,0,0,0,0,-1],
-                        [-1,-1,-1,-1,-1,-1,-1]]
+    use_kata = False
+    # pattern_template = [[0,0,0,1,0,0,-1],
+    #                     [0,0,0,0,0,0,-1],
+    #                     [3,1,1,0,0,0,-1],
+    #                     [2,1,2,1,0,0,-1],
+    #                     [0,2,2,2,0,0,-1],
+    #                     [0,0,0,0,0,0,-1],
+    #                     [-1,-1,-1,-1,-1,-1,-1]]
+
+
+    # pattern_template = [[0, 1, 0], [0, 2, 1], [0, 0, 2]]
+    pattern_template = [[0, 0, 1], [0, 2, 1], [0, 0, 0]]
 
     pattern_turn = 1
 
@@ -279,12 +341,21 @@ if __name__ == '__main__':
         katago = None
 
     count = 0
-    for filename in os.listdir('go4go_collection'):
-        if (filename < "__go4go_2019"):
-            continue
-        full_file_path = os.path.join('go4go_collection', filename)
+    for filename in os.listdir('goTrainer/go4go_collection'):
+        filename = "__go4go_20180520_Kim-Miri_Park-Jiyeon.sgf"
+        # if (filename < "__go4go_2019"):
+        #     continue
+        full_file_path = os.path.join('goTrainer/go4go_collection', filename)
         print(f"trying {filename}")
-        pattern_search(pattern_template, pattern_turn, full_file_path, katago)
+
+        # pattern_search(pattern_template, pattern_turn, filepath=full_file_path, katago=katago)
+        try:
+            pattern_search_collect(pattern_template, pattern_turn, filepath=full_file_path, katago=katago)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+
+        break
         count += 1
         if count == 200:
             print("done")

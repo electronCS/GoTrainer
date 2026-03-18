@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -77,7 +78,7 @@ TEMPLATES = [
 ]
 
 # WSGI_APPLICATION = "goTrainer.wsgi.application"
-ASGI_APPLICATION = "goTrainer.asgi.application"  # update with your actual project name
+ASGI_APPLICATION = "backend.goTrainer.asgi.application"
 
 
 # Database
