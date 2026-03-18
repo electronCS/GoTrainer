@@ -37,15 +37,27 @@
 
 <div v-if="patternHits.length" class="pattern-hits-container">
   <div class="pattern-hits-header">
-    {{ patternHits.length }} result{{ patternHits.length !== 1 ? 's' : '' }} found
+    <span>{{ patternHits.length }} result{{ patternHits.length !== 1 ? 's' : '' }} found</span>
+    <span v-if="currentHitIndex >= 0" class="hit-counter">
+      {{ currentHitIndex + 1 }} / {{ patternHits.length }}
+    </span>
   </div>
-  <div class="pattern-hits-scroll">
+
+  <!-- Prev / Next / Restore controls -->
+  <div class="pattern-hits-nav">
+    <button class="hit-nav-btn" :disabled="currentHitIndex <= 0" @click="loadPrevHit">◀ Prev</button>
+    <button class="hit-nav-btn" :disabled="currentHitIndex >= patternHits.length - 1" @click="loadNextHit">Next ▶</button>
+    <button v-if="savedPositionBeforeSearch" class="hit-nav-btn hit-restore-btn" @click="restoreOriginalPosition">↩ Return to Original</button>
+  </div>
+
+  <div class="pattern-hits-scroll" ref="hitsScroll">
     <div
-      v-for="h in patternHits"
+      v-for="(h, idx) in patternHits"
       :key="(h.sgf_file || h.file) + ':' + (h.position_path || h.move_number)"
-      class="pattern-hit-item"
-      @click="loadHit(h)">
-      <span class="hit-filename">{{ (h.sgf_file || h.file || '').split('/').pop().replace(/^__go4go_/, '') }}</span>
+      :class="['pattern-hit-item', { 'pattern-hit-active': idx === currentHitIndex }]"
+      :ref="idx === currentHitIndex ? 'activeHit' : undefined"
+      @click="loadHit(h, idx)">
+      <span class="hit-filename">{{ (h.sgf_file || h.file || '').split('/').pop().replace(/^__go4go_/, '').replace(/\.sgf$/i, '') }}</span>
       <span class="hit-move">Move {{ h.move_number || h.moveNumber }}</span>
     </div>
   </div>
@@ -146,6 +158,8 @@ export default {
           patternTemplate: [],
           patternTurn: null,
           patternNextToPlay: 'B', // 'B' = black to play next, 'W' = white to play next
+          currentHitIndex: -1,     // index of the currently loaded hit (-1 = none)
+          savedPositionBeforeSearch: null,  // { rootNode, currentNode, sgfData } — to restore after pattern search
 
           translateX: 0,
           translateY: 0,
@@ -153,6 +167,20 @@ export default {
           mode: 'Play', // Default mode
 
       };
+  },
+  watch: {
+    currentHitIndex() {
+      // Auto-scroll the active hit into view
+      this.$nextTick(() => {
+        const el = this.$refs.activeHit;
+        const target = Array.isArray(el) ? el[0] : el;
+        if (target && target.$el) {
+          target.$el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        } else if (target) {
+          target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      });
+    }
   },
   computed: {
     boardMode() {
@@ -332,7 +360,23 @@ onClearPattern() {
   },
 
   // --- Use a hit ---
-  async loadHit(hit) {
+  async loadHit(hit, index) {
+    // Save original position on first hit load
+    if (this.savedPositionBeforeSearch === null && this.rootNode) {
+      this.savedPositionBeforeSearch = {
+        sgfData: this.sgfData,
+        rootNode: this.rootNode,
+        currentNode: this.currentNode
+      };
+    }
+
+    // Track which hit we're on
+    if (typeof index === 'number') {
+      this.currentHitIndex = index;
+    } else {
+      this.currentHitIndex = this.patternHits.indexOf(hit);
+    }
+
     // hit: { sgf_file, move_number, position_path }
     const file = hit.sgf_file || hit.file;
     const resp = await fetch(`/get_sgf?file=${encodeURIComponent(file)}`);
@@ -354,6 +398,33 @@ onClearPattern() {
         node = node.children[0];
       }
       if (node) this.navigateToNode(node);
+    }
+  },
+
+  loadPrevHit() {
+    if (this.currentHitIndex > 0) {
+      this.loadHit(this.patternHits[this.currentHitIndex - 1], this.currentHitIndex - 1);
+    }
+  },
+
+  loadNextHit() {
+    if (this.currentHitIndex < this.patternHits.length - 1) {
+      this.loadHit(this.patternHits[this.currentHitIndex + 1], this.currentHitIndex + 1);
+    }
+  },
+
+  restoreOriginalPosition() {
+    if (!this.savedPositionBeforeSearch) return;
+    const { sgfData, rootNode, currentNode } = this.savedPositionBeforeSearch;
+    this.sgfData = sgfData;
+    this.rootNode = rootNode;
+    this.currentNode = currentNode;
+    this.turn = this.determineNextColor();
+    this.currentHitIndex = -1;
+    this.savedPositionBeforeSearch = null;
+    // Clear pattern overlay
+    if (this.$refs.goBoard) {
+      this.$refs.goBoard.clearPattern();
     }
   },
 

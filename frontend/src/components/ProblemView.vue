@@ -241,7 +241,7 @@ export default {
   //   window.location.href = `/problem?problemId=${nextProblemId}`;
   // },
 
-        navigateToProblemPosition(position) {
+    navigateToProblemPosition(position) {
         if (!position || !this.rootNode) {
             console.error("Invalid position or root node not set.");
             return;

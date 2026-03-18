@@ -232,6 +232,8 @@ export default {
 
         katagoMoveMap: {},  // move string -> { scoreLead, visits, winrate, ... }
         lastKatagoSnapshot: null, // persists last best move so bar stays visible during navigation
+        katagoNavGeneration: 0,    // incremented on each navigation
+        katagoActiveGeneration: 0, // set equal to navGeneration only after all nav commands sent; messages with mismatch are dropped
         gtpCommandLog: [],
         currentPathMoves: [],
         sabakiBoard: Board.fromDimensions(19),
@@ -362,6 +364,20 @@ computed: {
 
     methods: {
 
+      // Re-open the message gate after a short delay.
+      // Captures the current navGeneration so rapid clicks don't accidentally re-open an old gate.
+      _reopenKatagoGate() {
+        const gen = this.katagoNavGeneration;
+        if (this._gateTimer) clearTimeout(this._gateTimer);
+        this._gateTimer = setTimeout(() => {
+          // Only open if no newer navigation has happened
+          if (this.katagoNavGeneration === gen) {
+            this.katagoMoveMap = {};  // wipe anything that snuck in
+            this.katagoActiveGeneration = gen;
+          }
+        }, 150);  // 150ms is enough for the round-trip stop→ack to flush
+      },
+
       clearPattern() {
         this.patternVertices = [];
         this.selectedPatternCells = [];
@@ -412,6 +428,8 @@ computed: {
           const line = data.line;
 
           if (!line.startsWith("info move")) return;
+          // Drop stale messages that arrived during navigation (before new position is fully set up)
+          if (this.katagoNavGeneration !== this.katagoActiveGeneration) return;
 
           // Split on "info move", add it back to each part
           const chunks = line.split(/info move\s+/).filter(Boolean);
@@ -445,7 +463,6 @@ computed: {
         const height = maxY - minY + 1;
 
         // Initialize with 3 (wildcard) — cells outside the selection are "don't care"
-        // -1 is reserved for actual board borders and should never be set by user clicks
         const pattern = Array.from({ length: height }, () =>
           Array.from({ length: width }, () => 3)
         );
@@ -458,14 +475,33 @@ computed: {
             mapped = 1;  // black stone
           } else if (color === -1) {
             mapped = 2;  // white stone
-          } else if (x === 0 || x === this.board_size - 1 || y === 0 || y === this.board_size - 1) {
-            // Empty cell on the actual board edge → treat as board border
-            mapped = -1;
           } else {
-            mapped = 0;  // empty interior intersection
+            mapped = 0;  // empty intersection (even on the board edge — edge cells are still playable!)
           }
 
           pattern[y - minY][x - minX] = mapped;
+        }
+
+        // If the selection touches a board edge, add an extra row/column of -1 (border)
+        // beyond that edge. The backend's board has a border ring OUTSIDE the 19×19 grid,
+        // so -1 represents "off the board", not "on the edge".
+        const lastIdx = this.board_size - 1; // 18 for a 19×19 board
+
+        // Bottom edge → add border row at the bottom
+        if (maxY === lastIdx) {
+          pattern.push(Array.from({ length: pattern[0].length }, () => -1));
+        }
+        // Top edge → add border row at the top
+        if (minY === 0) {
+          pattern.unshift(Array.from({ length: pattern[0].length }, () => -1));
+        }
+        // Right edge → add border column on the right
+        if (maxX === lastIdx) {
+          for (const row of pattern) row.push(-1);
+        }
+        // Left edge → add border column on the left
+        if (minX === 0) {
+          for (const row of pattern) row.unshift(-1);
         }
 
         console.log("Generated pattern template:", pattern);
@@ -683,6 +719,10 @@ computed: {
       },
 
       syncKatagoToNewNode(newNode, oldNode) {
+        // Always stop any running analysis first so in-flight messages don't corrupt the new position
+        this.katagoSocket.send("stop");
+        // Increment generation so any in-flight messages are dropped in onmessage
+        this.katagoNavGeneration++;
 
         const newMoves = newNode.getMovesToNode(this.rootNode);
 
@@ -731,6 +771,8 @@ computed: {
             };
           }
           this.katagoMoveMap = {};
+          // Re-open the message gate after a short delay so in-flight stale messages get dropped
+          this._reopenKatagoGate();
           return;
         } else {
           for (let i = 0; i < undoCount; i++) {
@@ -769,6 +811,8 @@ computed: {
           };
         }
         this.katagoMoveMap = {};
+        // Re-open the message gate after a short delay so in-flight stale messages get dropped
+        this._reopenKatagoGate();
 
         // this.logGTPCommand("kata-analyze b");
       },
