@@ -1,0 +1,136 @@
+.game-info {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* Player row: Black left, White right */
+.gi-players {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.gi-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.gi-white {
+  justify-content: flex-end;
+}
+
+.gi-stone {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.gi-stone-black {
+  background: radial-gradient(circle at 35% 35%, #555, #111);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
+.gi-stone-white {
+  background: radial-gradient(circle at 35% 35%, #fff, #ccc);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.25);
+  border: 1px solid #bbb;
+}
+
+.gi-player-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gi-player-info-right {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.gi-player-name {
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.gi-rank {
+  font-weight: 400;
+  color: #777;
+  font-size: 12px;
+}
+
+.gi-captures {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Game settings tags */
+.gi-settings {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.gi-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  background: #eef;
+  border: 1px solid #dde;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #446;
+  white-space: nowrap;
+}
+
+/* Details toggle */
+.gi-details-btn {
+  background: none;
+  border: none;
+  padding: 2px 0;
+  font-size: 11px;
+  color: #888;
+  cursor: pointer;
+}
+
+.gi-details-btn:hover {
+  color: #444;
+}
+
+.gi-details {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gi-detail-row {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.gi-detail-label {
+  font-weight: 600;
+  color: #777;
+  min-width: 50px;
+}
+
+.gi-detail-value {
+  color: #444;
+  word-break: break-all;
+}

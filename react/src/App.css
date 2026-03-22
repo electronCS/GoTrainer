@@ -1,0 +1,412 @@
+.app {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+}
+
+/* Combined header: title + toolbar + winrate */
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  flex-wrap: wrap;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+/* Top toolbar: Open, Mode, Analyze, New Game */
+.toolbar {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.toolbar button,
+.toolbar select {
+  padding: 6px 14px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.toolbar button:hover {
+  background: #e8e8e8;
+}
+
+.mode-select select {
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+/* Board column: board + nav controls below */
+.board-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Navigation buttons below board */
+.nav-controls {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.nav-controls button {
+  padding: 6px 14px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.nav-controls button:hover {
+  background: #e8e8e8;
+}
+
+.nav-controls button:active {
+  background: #d0d0d0;
+}
+
+.move-counter {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+/* Winrate section in side panel */
+.winrate-section {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.winrate-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.winrate-bar {
+  flex: 1;
+  display: flex;
+  height: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.25);
+}
+
+.winrate-fill-black {
+  background: #1a1a1a;
+  transition: width 0.3s ease;
+  height: 100%;
+}
+
+.winrate-fill-white {
+  background: #e8e8e8;
+  transition: width 0.3s ease;
+  height: 100%;
+}
+
+.winrate-label {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 48px;
+}
+
+.winrate-details {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.score-lead-label {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #444;
+}
+
+.point-loss {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  white-space: nowrap;
+}
+
+.toolbar .open-btn {
+  background: #e8f4e8;
+  border-color: #4a4;
+  color: #2a2;
+}
+
+.toolbar .open-btn:hover {
+  background: #d0ecd0;
+}
+
+.toolbar .analyze-btn {
+  background: #e8e8f8;
+  border-color: #66a;
+  color: #33a;
+}
+
+.toolbar .analyze-btn:hover {
+  background: #d8d8f0;
+}
+
+.toolbar .analyze-btn.analyzing {
+  background: #f8e8e8;
+  border-color: #a66;
+  color: #a33;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.toolbar .reset-btn {
+  margin-left: 0.3rem;
+  color: #c33;
+  border-color: #c33;
+}
+
+.toolbar .reset-btn:hover {
+  background: #fee;
+}
+
+/* New Game modal dialog */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-dialog {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 28px;
+  min-width: 300px;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.modal-dialog h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  color: #222;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-form label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #444;
+}
+
+.modal-form select,
+.modal-form input {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 140px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-cancel {
+  padding: 8px 18px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-cancel:hover {
+  background: #f5f5f5;
+}
+
+.modal-confirm {
+  padding: 8px 18px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  background: #2a7;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-confirm:hover {
+  background: #1a6;
+}
+
+/* Main layout: board + resize handle + side panel */
+.main-layout {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  padding-left: 8px;
+}
+
+.side-panel {
+  flex: 1;
+  min-width: 250px;
+  max-width: 500px;
+  padding-left: 8px;
+}
+
+.side-panel h3 {
+  margin: 0 0 0.5rem;
+  font-size: 15px;
+  color: #555;
+}
+
+/* Vertical resize handle between board and side panel */
+.resize-handle {
+  width: 12px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-height: 200px;
+}
+
+.resize-handle:hover .resize-handle-line,
+.resize-handle:active .resize-handle-line {
+  background: #999;
+  width: 3px;
+}
+
+.resize-handle-line {
+  width: 2px;
+  height: 48px;
+  background: #ccc;
+  border-radius: 2px;
+  transition: background 0.15s, width 0.15s;
+}
+
+/* Comment box (SGF C[] property) */
+.comment-box-wrapper {
+  margin-bottom: 8px;
+}
+
+.comment-box {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.5;
+  color: #333;
+  overflow-y: auto;
+  resize: none;
+  min-height: 32px;
+  max-height: 300px;
+  height: 60px;
+}
+
+.comment-box:focus {
+  outline: none;
+  border-color: #88b;
+}
+
+/* Annotation toolbar in side panel */
+.annotation-toolbar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.ann-tool {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ann-tool:hover {
+  background: #eef;
+  border-color: #aac;
+}
+
+.ann-tool-active {
+  background: #ddf;
+  border-color: #66a;
+  box-shadow: 0 0 0 2px rgba(100, 100, 200, 0.3);
+}
+
+.comment-resize-handle {
+  height: 6px;
+  cursor: row-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comment-resize-handle::after {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 2px;
+  background: #ccc;
+  border-radius: 1px;
+}
+
+.comment-resize-handle:hover::after {
+  background: #999;
+}

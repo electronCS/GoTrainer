@@ -1,0 +1,172 @@
+.problem-view {
+  margin-top: 1rem;
+}
+
+.problem-view h3 {
+  margin: 0 0 0.5rem;
+  font-size: 15px;
+  color: #555;
+}
+
+.pv-search {
+  display: flex;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.pv-search input {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.pv-search button {
+  padding: 4px 10px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.pv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.pv-tag {
+  padding: 2px 8px;
+  font-size: 11px;
+  background: #e8e8e8;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.pv-tag:hover {
+  background: #d0d0f0;
+}
+
+/* Status area */
+.pv-status {
+  padding: 8px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.pv-description {
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.pv-correct {
+  color: #2a7a2a;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pv-wrong {
+  color: #c33;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.pv-prompt {
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+}
+
+.pv-next-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid #4a4;
+  border-radius: 4px;
+  background: #e8f4e8;
+  color: #2a2;
+  cursor: pointer;
+}
+
+.pv-next-btn:hover {
+  background: #d0ecd0;
+}
+
+.pv-show-answer-btn {
+  margin-top: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.pv-show-answer-btn:hover {
+  background: #f0f0f0;
+}
+
+.pv-answer {
+  margin-top: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #336;
+  background: #eef;
+  border-radius: 4px;
+}
+
+/* Results */
+.pv-results-header {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.pv-results-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.pv-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.pv-item:hover {
+  background: #eef;
+}
+
+.pv-item-active {
+  background: #ddf !important;
+  font-weight: 600;
+}
+
+.pv-item-desc {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.pv-item-tags {
+  font-size: 11px;
+  color: #888;
+  white-space: nowrap;
+}

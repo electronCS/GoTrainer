@@ -1,0 +1,119 @@
+.pattern-search {
+  margin-top: 1rem;
+}
+
+.pattern-search h3 {
+  margin: 0 0 0.5rem;
+  font-size: 15px;
+  color: #555;
+}
+
+.ps-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.ps-controls label {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ps-controls select {
+  font-size: 13px;
+  padding: 2px 6px;
+}
+
+.ps-buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.ps-buttons button {
+  padding: 4px 12px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ps-buttons button:hover:not(:disabled) {
+  background: #e8e8e8;
+}
+
+.ps-buttons button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ps-restore-btn {
+  background: #e8f0fe !important;
+  border-color: #4a7abf !important;
+  color: #2a5da0 !important;
+}
+
+.ps-restore-btn:hover {
+  background: #d0e0f8 !important;
+}
+
+.ps-progress {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+
+.ps-no-results {
+  font-size: 13px;
+  color: #999;
+  font-style: italic;
+}
+
+.ps-results-header {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.ps-results-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.ps-hit {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.ps-hit:hover {
+  background: #eef;
+}
+
+.ps-hit-active {
+  background: #ddf !important;
+  font-weight: 600;
+}
+
+.ps-hit-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.ps-hit-move {
+  white-space: nowrap;
+  color: #666;
+}

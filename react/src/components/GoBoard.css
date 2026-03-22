@@ -1,0 +1,122 @@
+/* GoBoard SVG styles */
+
+.go-board {
+  display: block;
+  max-width: 100%;
+  user-select: none;
+}
+
+.board-bg {
+  fill: #f5deb3; /* classic wood color */
+}
+
+.go-board .grid-line {
+  stroke: #333;
+  stroke-width: 0.04;
+  stroke-linecap: square;
+}
+
+.star-point {
+  fill: #333;
+}
+
+.coord-label {
+  fill: #444;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+}
+
+/* Stones */
+.stone {
+  stroke-width: 0.03;
+}
+
+.stone-black {
+  fill: #1a1a1a;
+  stroke: #000;
+}
+
+.stone-white {
+  fill: #f0f0f0;
+  stroke: #333;
+}
+
+/* Last move marker (circle on the most recent stone) */
+.last-move-marker {
+  fill: none;
+  stroke-width: 0.06;
+  pointer-events: none;
+}
+
+.last-move-on-black {
+  stroke: #fff;
+}
+
+.last-move-on-white {
+  stroke: #333;
+}
+
+/* Answer markers */
+.answer-marker-bg {
+  fill: rgba(50, 200, 50, 0.7);
+  stroke: #fff;
+  stroke-width: 0.06;
+  pointer-events: none;
+}
+
+.answer-marker-text {
+  fill: #fff;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+/* KataGo analysis overlays */
+.katago-overlay {
+  pointer-events: none;
+}
+
+.katago-label {
+  fill: #000;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+}
+
+/* Ghost stone (hover preview) */
+.ghost-stone {
+  pointer-events: none;
+  stroke-width: 0.03;
+}
+
+.ghost-stone-black {
+  fill: rgba(0, 0, 0, 0.4);
+  stroke: rgba(0, 0, 0, 0.3);
+}
+
+.ghost-stone-white {
+  fill: rgba(255, 255, 255, 0.6);
+  stroke: rgba(100, 100, 100, 0.4);
+}
+
+/* SGF annotation labels (LB text) */
+.sgf-label-text {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Pattern selection rectangle */
+.pattern-selection {
+  fill: rgba(0, 200, 255, 0.25);
+  stroke: rgba(0, 128, 255, 0.8);
+  stroke-width: 0.08;
+  stroke-dasharray: 0.2 0.1;
+  pointer-events: none;
+}
