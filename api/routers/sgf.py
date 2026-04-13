@@ -67,8 +67,18 @@ async def save_sgf_file(req: SaveSgfRequest):
     return {"message": "SGF file saved successfully", "path": req.file_path}
 
 
-@router.post("/upload", response_class=PlainTextResponse)
+@router.post("/upload")
 async def upload_sgf(file: UploadFile = File(...)):
-    """Upload an SGF file and return its contents as text."""
+    """Upload an SGF file — saves to goTrainer/uploads/ and returns contents + path."""
     contents = await file.read()
-    return contents.decode("utf-8")
+    text = contents.decode("utf-8")
+
+    # Save to uploads directory so the file is accessible later (e.g. for problem source_sgf_file)
+    uploads_dir = PROJECT_ROOT / "goTrainer" / "uploads"
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    safe_name = Path(file.filename).name  # strip any directory components
+    dest = uploads_dir / safe_name
+    dest.write_text(text, encoding="utf-8")
+
+    rel_path = str(dest.relative_to(PROJECT_ROOT))
+    return {"sgf": text, "path": rel_path}

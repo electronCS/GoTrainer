@@ -1,82 +1,20 @@
 [
   {
-    "id": "sample_01",
-    "sgf": "(;GM[1]SZ[19]AB[pd][qf][nc]AW[qc][oc][pc]PL[B]C[White has invaded at 3-3. Find the correct response.](;B[qd]C[CORRECT: The block is the key move — sealing White in.])(;B[rc]C[WRONG: Too passive. White gets an easy life.]))",
-    "source_sgf_file": null,
-    "source_move_number": null,
-    "tags": [
-      "joseki",
-      "opening",
-      "difficulty:2"
-    ],
-    "description": "Find the correct approach move after White's invasion.",
-    "created_at": "2024-01-15T10:00:00Z"
-  },
-  {
-    "id": "sample_02",
-    "sgf": "(;GM[1]SZ[19]AB[ce][de][cf]AW[cd][dd][dc]PL[B]C[Where should Black play to maintain balance?](;B[be]C[CORRECT: Solid extension — Black's group is strong.])(;B[df]C[WRONG: This is too slow and doesn't address the weakness.]))",
-    "source_sgf_file": null,
-    "source_move_number": null,
-    "tags": [
-      "fuseki",
-      "opening",
-      "difficulty:1"
-    ],
-    "description": "Where should Black play to maintain balance?",
-    "created_at": "2024-01-16T10:00:00Z"
-  },
-  {
-    "id": "example_m13",
-    "sgf": "(;GM[1]SZ[19]AB[pd][qp][np][qi][pf][pc]AW[cq][dc][qf][nc][qc][qd]PL[B]C[White has just played R16, pressing on Black's corner stones. How should Black respond to keep pressure on the White group?](;B[pe]C[CORRECT: Connecting at Q15 is the strongest move. It links Black's stones solidly while keeping White's group under pressure. White is forced to defend on the side.])(;B[qe]C[WRONG: R15 looks natural but it's an overplay — it creates a cutting point and lets White play atari at Q15, splitting Black's stones.]))",
-    "source_sgf_file": "example.sgf",
-    "source_move_number": 12,
-    "tags": [
-      "joseki",
-      "pressing",
-      "difficulty:2",
-      "real-game"
-    ],
-    "description": "After White's R16, find the best way to keep pressure.",
-    "created_at": "2024-01-17T10:00:00Z"
-  },
-  {
-    "id": "738f5346",
-    "sgf": "(;GM[1]SZ[19]AB[fc][pc][qc][ed][fd][jd][pd][nf][of][pf][ng][qh][qi][pj][qn][dp][pp]AW[jb][dc][ec][lc][nc][cd][qd][qe][cf][qf][og][pg][qg][oi][pi]PL[B](;B[rc]C[WRONG: ])(;B[ob]C[CORRECT: ])(;B[nb];W[mb];B[ob]C[CORRECT: ]))",
-    "source_sgf_file": "84927437-270-AlanHuang-this is not go.sgf",
-    "source_move_number": 29,
-    "tags": [
-      "test"
-    ],
-    "description": "",
-    "created_at": "2026-04-13T18:32:29.628119+00:00"
-  },
-  {
-    "id": "e120f148",
-    "sgf": "(;GM[1]SZ[19]AB[nb][ob][fc][pc][qc][rc][ed][fd][jd][pd][nf][of][pf][eg][ng][qh][qi][pj][pl][qn][dp][pp]AW[jb][mb][dc][ec][lc][nc][cd][id][qd][je][ke][qe][cf][qf][og][pg][qg][oi][pi][qj]PL[B](;B[qk]C[WRONG: ])(;B[rj];W[qk](;B[pk]C[CORRECT: ])(;B[rk]C[WRONG: ])))",
-    "source_sgf_file": "84927437-270-AlanHuang-this is not go.sgf",
-    "source_move_number": 39,
-    "tags": [],
-    "description": "",
-    "created_at": "2026-04-13T19:05:17.838722+00:00"
-  },
-  {
-    "id": "8d35c960",
-    "sgf": "(;GM[1]SZ[19]AB[nb][ob][fc][pc][qc][rc][ed][fd][jd][pd][nf][of][pf][eg][ng][qh][qi][pj][pl][qn][dp][pp]AW[jb][mb][dc][ec][lc][nc][cd][id][qd][je][ke][qe][cf][qf][og][pg][qg][oi][pi][qj]PL[B]C[How does black deal with this cut? (A or B)](;B[qk];W[rj];B[rk];W[oj];B[pk]C[WRONG: Black's shape is bad (has empty triangle)]SQ[pl][pk][qk])(;B[rj];W[qk](;B[pk]C[CORRECT: ])(;B[rk]C[WRONG: ])))",
-    "source_sgf_file": "84927437-270-AlanHuang-this is not go.sgf",
-    "source_move_number": 39,
-    "tags": [
-      "Shape"
-    ],
-    "description": "How does black deal with this cut? (A or B)",
-    "created_at": "2026-04-13T19:15:05.218969+00:00"
-  },
-  {
     "id": "47abe0ba",
-    "sgf": "(;GM[1]SZ[19]AB[fc][pc][qc][ed][fd][jd][pd][nf][of][pf][ng][qi][qn][dp][pp]AW[jb][dc][ec][lc][nc][cd][qd][qe][cf][qf][og][pg]PL[W]C[A or B]LB[pi:A][oi:B](;W[pi];B[pj];W[oi];B[qh];W[qg]C[CORRECT: White comes out with solid shape])(;W[oi];B[qg];W[qh];B[ph];W[rg];B[oh]C[WRONG: White is separated]))",
-    "source_sgf_file": "84927437-270-AlanHuang-this is not go.sgf",
-    "source_move_number": 24,
+    "sgf": "(;GM[1]SZ[19]AB[fc][pc][qc][ed][fd][jd][pd][nf][of][pf][ng][qh][qi][pj][qn][dp][pp]AW[jb][dc][ec][lc][nc][cd][qd][qe][cf][qf][og][pg][qg][oi][pi]PL[B](;B[rc]C[WRONG: ])(;B[ob]C[CORRECT: Can expand more here]))",
+    "source_sgf_file": "goTrainer/uploads/84927437-270-AlanHuang-this is not go.sgf",
+    "source_move_number": 29,
     "tags": [],
-    "description": "A or B",
-    "created_at": "2026-04-13T19:18:57.060013+00:00"
+    "description": "",
+    "created_at": "2026-04-13T20:19:56.454726+00:00"
+  },
+  {
+    "id": "556f9c9b",
+    "sgf": "(;GM[1]SZ[19]AB[nb][ob][fc][pc][qc][rc][ed][fd][jd][pd][nf][of][pf][eg][ng][qh][qi][pj][pl][qn][dp][pp]AW[jb][mb][dc][ec][lc][nc][cd][id][qd][je][ke][qe][cf][qf][og][pg][qg][oi][pi][qj]PL[B](;B[qk];W[rj];B[rk];W[oj];B[pk]C[WRONG: Bad shape, white benefits])(;B[rj];W[qk](;B[pk]C[CORRECT: Correct, white is dead and has no benefit])(;B[rk]C[WRONG: Crawling on the bottom is not bad, but black can go for more])))",
+    "source_sgf_file": null,
+    "source_move_number": 39,
+    "tags": [],
+    "description": "",
+    "created_at": "2026-04-13T20:56:56.004626+00:00"
   }
 ]

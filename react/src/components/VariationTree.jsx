@@ -5,6 +5,42 @@ import './VariationTree.css'
 const NODE_RADIUS = 14
 const BG_RADIUS = 15
 
+/** Pre-compute leaf result for all _isProblemNode nodes. Returns Map<GameNode, 'correct'|'wrong'|null> */
+function buildProblemResultMap(rootNode) {
+  const resultMap = new Map()
+  const compute = (node) => {
+    if (resultMap.has(node)) return resultMap.get(node)
+    const c = node.props.C || ''
+    const kids = node.children.filter((ch) => ch._isProblemNode)
+    if (kids.length === 0) {
+      let r = null
+      if (c.startsWith('CORRECT:') || c.startsWith('CORRECT')) r = 'correct'
+      else if (c.startsWith('WRONG:') || c.startsWith('WRONG')) r = 'wrong'
+      resultMap.set(node, r)
+      return r
+    }
+    let hasCorrect = false, hasWrong = false
+    for (const kid of kids) {
+      const kr = compute(kid)
+      if (kr === 'correct') hasCorrect = true
+      else if (kr === 'wrong') hasWrong = true
+    }
+    const r = hasCorrect ? 'correct' : hasWrong ? 'wrong' : null
+    resultMap.set(node, r)
+    return r
+  }
+  // Walk entire tree to find _isProblemNode nodes (they may be injected deep in the game)
+  const walk = (node) => {
+    if (node._isProblemNode && !resultMap.has(node)) compute(node)
+    for (const child of node.children) {
+      if (child._isProblemNode) compute(child)
+      else walk(child) // only recurse into non-problem nodes to find injection points
+    }
+  }
+  walk(rootNode)
+  return resultMap
+}
+
 /**
  * VariationTree — renders the game tree as an SVG inside a scrollable container.
  *
@@ -14,7 +50,7 @@ const BG_RADIUS = 15
  *   onSelectNode — callback (gameNode) => void
  *   version     — bumped on tree mutations (triggers layout recompute)
  */
-export default function VariationTree({ rootNode, currentNode, onSelectNode, version, trackedNodes, annotationVersion }) {
+export default function VariationTree({ rootNode, currentNode, onSelectNode, version, trackedNodes, problemNodes, annotationVersion }) {
   const containerRef = useRef(null)
   const currentNodeRef = useRef(null)
 
@@ -28,6 +64,12 @@ export default function VariationTree({ rootNode, currentNode, onSelectNode, ver
   const activeBranch = useMemo(
     () => computeActiveBranch(currentNode),
     [currentNode]
+  )
+
+  // Pre-compute problem node results once (not per-node during render)
+  const problemResultMap = useMemo(
+    () => (problemNodes && rootNode) ? buildProblemResultMap(rootNode) : null,
+    [problemNodes, rootNode, version]
   )
 
   // Auto-scroll current node into view
@@ -116,6 +158,15 @@ export default function VariationTree({ rootNode, currentNode, onSelectNode, ver
 
               {/* Colored node circle */}
               <circle cx={n.x} cy={n.y} r={NODE_RADIUS} className={nodeClass} />
+
+              {/* Problem node ring (solution mode) — uses pre-computed result map */}
+              {!isTracked && problemResultMap && gn._isProblemNode && (() => {
+                const result = problemResultMap.get(gn)
+                const ringClass = result === 'correct' ? 'tracked-correct' : result === 'wrong' ? 'tracked-wrong' : 'tracked-default'
+                return (
+                  <circle cx={n.x} cy={n.y} r={NODE_RADIUS + 3} className={`tracked-ring ${ringClass}`} />
+                )
+              })()}
 
               {/* Tracked node ring (problem authoring) — color based on reachable leaf result */}
               {isTracked && (() => {

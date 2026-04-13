@@ -343,6 +343,9 @@ export class GameTree {
         moveNumber: newMoveNumber,
       })
 
+      // Mark as a problem node so problem logic only follows these branches
+      gameNode._isProblemNode = true
+
       parentGameNode.addChild(gameNode)
 
       for (const child of parsedNode.children) {

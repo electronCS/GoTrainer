@@ -44,8 +44,10 @@ export default function ProblemAuthor({
   onGoToNode,
   annotationVersion,
   onAnnotationBump,
+  editingProblemId,
+  initialTags,
 }) {
-  const [tags, setTags] = useState('')
+  const [tags, setTags] = useState(initialTags || '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -130,8 +132,12 @@ export default function ProblemAuthor({
     setError(null)
 
     try {
-      const resp = await fetch(`${API_BASE}/api/problems`, {
-        method: 'POST',
+      const isEditing = !!editingProblemId
+      const url = isEditing
+        ? `${API_BASE}/api/problems/${editingProblemId}`
+        : `${API_BASE}/api/problems`
+      const resp = await fetch(url, {
+        method: isEditing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(problem),
       })
@@ -154,8 +160,11 @@ export default function ProblemAuthor({
   return (
     <div className="problem-author">
       <div className="pa-header">
-        <h3>📌 Creating Problem</h3>
-        <span className="pa-move-info">at move {problemRootNode.moveNumber}</span>
+        <h3>📌 {editingProblemId ? 'Editing Problem' : 'Creating Problem'}</h3>
+        {editingProblemId
+          ? <span className="pa-move-info">ID: {editingProblemId}</span>
+          : <span className="pa-move-info">at move {problemRootNode.moveNumber}</span>
+        }
       </div>
 
       {/* Instructions */}
@@ -277,7 +286,7 @@ export default function ProblemAuthor({
           disabled={saving || !hasAnyBranches}
           title={!hasAnyBranches ? 'Play some moves first' : !allMarked ? 'Mark all leaves first' : 'Save problem'}
         >
-          {saving ? 'Saving...' : '💾 Save Problem'}
+          {saving ? 'Saving...' : editingProblemId ? '💾 Update Problem' : '💾 Save Problem'}
         </button>
       </div>
 

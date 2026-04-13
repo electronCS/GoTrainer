@@ -221,20 +221,105 @@
 /* Comment display (read-only, shown in both modes) */
 .pv-comment-display {
   padding: 8px 10px;
-  background: #f0f4ff;
-  border: 1px solid #cce;
+  background: #f8f8f8;
+  border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 13px;
   line-height: 1.5;
   color: #333;
   white-space: pre-wrap;
-  margin-top: 4px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
 }
 
-.pv-comment-try {
-  margin-bottom: 6px;
-  background: #f8f8f8;
-  border-color: #ddd;
+.pv-comment-correct {
+  background: #e8f8e8;
+  border-color: #8c8;
+}
+
+.pv-comment-wrong {
+  background: #fce8e8;
+  border-color: #c88;
+}
+
+.pv-comment-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.pv-comment-text {
+  flex: 1;
+}
+
+/* Prev / Next navigation */
+.pv-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.pv-nav-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  color: #444;
+}
+
+.pv-nav-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.pv-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pv-nav-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+}
+
+/* Edit / Delete buttons */
+.pv-manage {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.pv-edit-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid #aac;
+  border-radius: 4px;
+  background: #f0f0ff;
+  color: #44a;
+  cursor: pointer;
+}
+
+.pv-edit-btn:hover {
+  background: #e0e0f8;
+}
+
+.pv-delete-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid #caa;
+  border-radius: 4px;
+  background: #fff0f0;
+  color: #a44;
+  cursor: pointer;
+}
+
+.pv-delete-btn:hover {
+  background: #f8e0e0;
 }
 
 /* Results */

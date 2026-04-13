@@ -33,6 +33,8 @@ export default function ProblemView({
   onResetProblem,
   problemSolveMode,
   onSolveModeChange,
+  onEditProblem,
+  onDeleteProblem,
 }) {
   const [searchTags, setSearchTags] = useState('')
   const [problems, setProblems] = useState([])
@@ -107,6 +109,12 @@ export default function ProblemView({
     }
   }, [onLoadProblem])
 
+  const handlePrevProblem = () => {
+    if (currentIdx > 0) {
+      loadProblem(problems[currentIdx - 1], currentIdx - 1)
+    }
+  }
+
   const handleNextProblem = () => {
     if (currentIdx < problems.length - 1) {
       loadProblem(problems[currentIdx + 1], currentIdx + 1)
@@ -114,6 +122,18 @@ export default function ProblemView({
   }
 
   const isSolutionMode = problemSolveMode === 'solution'
+
+  // Format a comment — strip CORRECT:/WRONG: prefix, return { icon, text }
+  const formatComment = (raw) => {
+    if (!raw) return null
+    if (raw.startsWith('CORRECT:')) return { icon: '✅', cls: 'pv-comment-correct', text: raw.replace(/^CORRECT:\s*/, '') }
+    if (raw.startsWith('CORRECT')) return { icon: '✅', cls: 'pv-comment-correct', text: raw.replace(/^CORRECT\s*/, '') }
+    if (raw.startsWith('WRONG:')) return { icon: '❌', cls: 'pv-comment-wrong', text: raw.replace(/^WRONG:\s*/, '') }
+    if (raw.startsWith('WRONG')) return { icon: '❌', cls: 'pv-comment-wrong', text: raw.replace(/^WRONG\s*/, '') }
+    return { icon: null, cls: '', text: raw }
+  }
+
+  const commentInfo = formatComment(currentNode?.props?.C)
 
   return (
     <div className="problem-view">
@@ -184,12 +204,12 @@ export default function ProblemView({
         </div>
       )}
 
-      {/* Problem answer status (try mode) */}
+      {/* Problem answer status (try mode) — includes comment text inline */}
       {problemActive && !isSolutionMode && (
         <div className="pv-status">
           {answerResult === 'correct' && (
             <div className="pv-correct">
-              ✅ Correct!
+              ✅ {commentInfo?.text ? commentInfo.text : 'Correct!'}
               <div className="pv-after-correct">
                 <button onClick={onResetProblem} className="pv-reset-small-btn">
                   ↩ Try Again
@@ -201,18 +221,76 @@ export default function ProblemView({
             </div>
           )}
           {answerResult === 'wrong' && (
-            <div className="pv-wrong">❌ Wrong — try again or view the solution</div>
+            <div className="pv-wrong">❌ {commentInfo?.text ? commentInfo.text : 'Wrong — try again or view the solution'}</div>
           )}
           {answerResult === null && (
-            <div className="pv-prompt">Make your move on the board.</div>
+            <>
+              <div className="pv-prompt">Make your move on the board.</div>
+              {commentInfo && commentInfo.text && !commentInfo.icon && (
+                <div className="pv-comment-display">{commentInfo.text}</div>
+              )}
+            </>
           )}
         </div>
       )}
 
-      {/* Solution mode info */}
-      {problemActive && isSolutionMode && (
+      {/* Comment display in solution mode — strips CORRECT:/WRONG: prefix */}
+      {problemActive && isSolutionMode && commentInfo && (
+        <div className={`pv-comment-display ${commentInfo.cls}`}>
+          {commentInfo.icon && <span className="pv-comment-icon">{commentInfo.icon}</span>}
+          {commentInfo.text && <span className="pv-comment-text">{commentInfo.text}</span>}
+        </div>
+      )}
+
+      {/* Solution mode hint */}
+      {problemActive && isSolutionMode && !commentInfo && (
         <div className="pv-solution-info">
           <p>Browse the variation tree to explore all answer branches.</p>
+        </div>
+      )}
+
+      {/* Edit / Delete buttons */}
+      {problemActive && problemData?.problem && (
+        <div className="pv-manage">
+          <button
+            className="pv-edit-btn"
+            onClick={() => onEditProblem?.(problemData.problem)}
+            title="Edit this problem in the authoring UI"
+          >
+            ✏️ Edit
+          </button>
+          <button
+            className="pv-delete-btn"
+            onClick={() => {
+              if (window.confirm(`Delete problem "${problemData.problem.description || problemData.problem.id}"?`)) {
+                onDeleteProblem?.(problemData.problem.id)
+              }
+            }}
+            title="Delete this problem"
+          >
+            🗑️ Delete
+          </button>
+        </div>
+      )}
+
+      {/* Prev / Next navigation */}
+      {problemActive && problems.length > 1 && currentIdx >= 0 && (
+        <div className="pv-nav">
+          <button
+            className="pv-nav-btn"
+            onClick={handlePrevProblem}
+            disabled={currentIdx <= 0}
+          >
+            ← Previous
+          </button>
+          <span className="pv-nav-label">{currentIdx + 1} / {problems.length}</span>
+          <button
+            className="pv-nav-btn"
+            onClick={handleNextProblem}
+            disabled={currentIdx >= problems.length - 1}
+          >
+            Next →
+          </button>
         </div>
       )}
 
