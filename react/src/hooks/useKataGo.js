@@ -220,6 +220,7 @@ export function useKataGo(boardSize = 19, gameInfo = {}) {
     toggleAnalysis,
     startAnalysis,
     stopAnalysis,
+    clearAnalysis,
     loadCacheFromNode,
   }
 }

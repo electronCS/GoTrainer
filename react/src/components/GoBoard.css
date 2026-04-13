@@ -60,13 +60,29 @@
 
 /* Answer markers */
 .answer-marker-bg {
-  fill: rgba(50, 200, 50, 0.7);
+  fill: rgba(50, 200, 50, 0.75);
   stroke: #fff;
   stroke-width: 0.06;
   pointer-events: none;
 }
 
 .answer-marker-text {
+  fill: #fff;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+/* Wrong answer markers */
+.wrong-marker-bg {
+  fill: rgba(220, 50, 50, 0.75);
+  stroke: #fff;
+  stroke-width: 0.06;
+  pointer-events: none;
+}
+
+.wrong-marker-text {
   fill: #fff;
   text-anchor: middle;
   dominant-baseline: central;

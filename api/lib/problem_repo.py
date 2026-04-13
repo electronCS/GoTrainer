@@ -16,11 +16,26 @@ from pydantic import BaseModel, Field
 
 
 class Problem(BaseModel):
-    """A Go problem."""
+    """
+    A Go problem.
+
+    The problem itself is stored as an SGF string in `sgf`. This SGF contains:
+    - Setup stones (AB/AW) defining the board position
+    - PL[B] or PL[W] indicating whose turn it is
+    - A root comment (C[]) with the problem prompt
+    - Variation branches where leaves are marked:
+      - C[CORRECT: ...] for correct answers
+      - C[WRONG: ...] for wrong answers
+      - Other C[] text for intermediate commentary
+
+    Optionally, `source_sgf_file` + `source_move_number` reference the original
+    game for context. At runtime, the frontend can load the full game and inject
+    the problem variations at the specified move number.
+    """
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
-    sgf_file: str                         # path to SGF file (relative to project root)
-    move_number: int                      # position in the main line
-    correct_answers: list[str]            # SGF coordinates, e.g. ["dd", "dp"]
+    sgf: str                              # self-contained problem SGF with variations
+    source_sgf_file: Optional[str] = None # optional: original game file (relative to project root)
+    source_move_number: Optional[int] = None  # optional: where in the original game the problem starts
     tags: list[str] = []                  # e.g. ["joseki", "difficulty:3", "player:Lee-Sedol"]
     description: str = ""
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())

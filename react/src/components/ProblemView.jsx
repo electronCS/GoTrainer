@@ -6,10 +6,20 @@ const API_BASE = 'http://localhost:8000'
 /**
  * ProblemView — problem search, selection, and solving UI.
  *
+ * Modes:
+ *   "try"     — user plays moves, gets correct/wrong feedback
+ *   "solution" — all answer branches visible, user can click through them
+ *
  * Props:
- *   onLoadProblem  — callback ({ sgfContent, moveNumber, correctAnswers, problem }) => void
- *   currentNode    — current GameNode (to check move coordinates)
+ *   onLoadProblem  — callback ({ problemSgf, sourceSgfContent, sourceMoveNumber, problem }) => void
+ *   currentNode    — current GameNode
  *   problemActive  — whether a problem is currently active
+ *   problemData    — { correctAnswers, description, problem }
+ *   answerResult   — 'correct' | 'wrong' | null
+ *   onShowAnswerChange — callback (bool) => void — toggles answer markers on board
+ *   onResetProblem — callback () => void — reset to problem root
+ *   problemSolveMode — 'try' | 'solution'
+ *   onSolveModeChange — callback (mode) => void
  */
 export default function ProblemView({
   onLoadProblem,
@@ -20,6 +30,9 @@ export default function ProblemView({
   answerResult,
   onNextProblem,
   onShowAnswerChange,
+  onResetProblem,
+  problemSolveMode,
+  onSolveModeChange,
 }) {
   const [searchTags, setSearchTags] = useState('')
   const [problems, setProblems] = useState([])
@@ -27,15 +40,36 @@ export default function ProblemView({
   const [total, setTotal] = useState(0)
   const [currentIdx, setCurrentIdx] = useState(-1)
   const [loading, setLoading] = useState(false)
-  const [showAnswer, setShowAnswer] = useState(false)
 
-  // Fetch available tags on mount
+  // Fetch available tags on mount + restore saved problem (URL hash takes priority)
   useEffect(() => {
     fetch(`${API_BASE}/api/problems/tags`)
       .then((r) => r.json())
       .then((data) => setAllTags(data.tags || []))
       .catch(() => {})
-  }, [])
+
+    // Check URL hash for problem ID first, then fall back to localStorage
+    const hash = window.location.hash.replace(/^#\/?/, '')
+    const parts = hash.split('/')
+    const hashProblemId = parts[0] === 'problem' ? parts[1] : null
+    const savedId = hashProblemId || localStorage.getItem('gotrainer_problem_id')
+
+    if (savedId) {
+      fetch(`${API_BASE}/api/problems/${savedId}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.problem?.sgf) {
+            onLoadProblem({
+              problemSgf: data.problem.sgf,
+              sourceSgfContent: data.source_sgf_content || null,
+              sourceMoveNumber: data.problem.source_move_number ?? null,
+              problem: data.problem,
+            })
+          }
+        })
+        .catch(() => {})
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = useCallback(async () => {
     setLoading(true)
@@ -57,15 +91,14 @@ export default function ProblemView({
 
   const loadProblem = useCallback(async (problem, idx) => {
     setCurrentIdx(idx)
-    setShowAnswer(false)
     try {
       const resp = await fetch(`${API_BASE}/api/problems/${problem.id}`)
       const data = await resp.json()
-      if (data.sgf_content) {
+      if (data.problem?.sgf) {
         onLoadProblem({
-          sgfContent: data.sgf_content,
-          moveNumber: data.problem.move_number,
-          correctAnswers: data.problem.correct_answers,
+          problemSgf: data.problem.sgf,
+          sourceSgfContent: data.source_sgf_content || null,
+          sourceMoveNumber: data.problem.source_move_number ?? null,
           problem: data.problem,
         })
       }
@@ -79,6 +112,8 @@ export default function ProblemView({
       loadProblem(problems[currentIdx + 1], currentIdx + 1)
     }
   }
+
+  const isSolutionMode = problemSolveMode === 'solution'
 
   return (
     <div className="problem-view">
@@ -115,47 +150,69 @@ export default function ProblemView({
         </div>
       )}
 
-      {/* Problem answer status */}
+      {/* Problem controls — mode toggle + reset */}
       {problemActive && (
+        <div className="pv-controls">
+          <div className="pv-mode-toggle">
+            <button
+              className={`pv-mode-btn ${!isSolutionMode ? 'pv-mode-active' : ''}`}
+              onClick={() => {
+                onSolveModeChange?.('try')
+                onShowAnswerChange?.(false)
+              }}
+            >
+              🎯 Try
+            </button>
+            <button
+              className={`pv-mode-btn ${isSolutionMode ? 'pv-mode-active' : ''}`}
+              onClick={() => {
+                onSolveModeChange?.('solution')
+                onShowAnswerChange?.(true)
+              }}
+            >
+              💡 View Solution
+            </button>
+          </div>
+
+          <button
+            className="pv-reset-btn"
+            onClick={onResetProblem}
+            title="Reset to problem start"
+          >
+            ↩ Reset
+          </button>
+        </div>
+      )}
+
+      {/* Problem answer status (try mode) */}
+      {problemActive && !isSolutionMode && (
         <div className="pv-status">
-          {problemData && (
-            <div className="pv-description">{problemData.description}</div>
-          )}
           {answerResult === 'correct' && (
             <div className="pv-correct">
               ✅ Correct!
-              <button onClick={handleNextProblem} className="pv-next-btn">
-                Next Problem →
-              </button>
+              <div className="pv-after-correct">
+                <button onClick={onResetProblem} className="pv-reset-small-btn">
+                  ↩ Try Again
+                </button>
+                <button onClick={handleNextProblem} className="pv-next-btn">
+                  Next Problem →
+                </button>
+              </div>
             </div>
           )}
           {answerResult === 'wrong' && (
-            <div className="pv-wrong">❌ Wrong, try again!</div>
+            <div className="pv-wrong">❌ Wrong — try again or view the solution</div>
           )}
           {answerResult === null && (
             <div className="pv-prompt">Make your move on the board.</div>
           )}
-          {answerResult !== 'correct' && (
-            <button
-              className="pv-show-answer-btn"
-              onClick={() => {
-                const next = !showAnswer
-                setShowAnswer(next)
-                onShowAnswerChange?.(next)
-              }}
-            >
-              {showAnswer ? '🙈 Hide Answer' : '👁 Show Answer'}
-            </button>
-          )}
-          {showAnswer && problemData && (
-            <div className="pv-answer">
-              Answer: {problemData.correctAnswers.map((c) => {
-                const col = String.fromCharCode(65 + (c.charCodeAt(0) - 97))  // a→A
-                const row = 19 - (c.charCodeAt(1) - 97)                       // a→19
-                return `${col}${row}`
-              }).join(', ')}
-            </div>
-          )}
+        </div>
+      )}
+
+      {/* Solution mode info */}
+      {problemActive && isSolutionMode && (
+        <div className="pv-solution-info">
+          <p>Browse the variation tree to explore all answer branches.</p>
         </div>
       )}
 

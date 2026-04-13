@@ -88,3 +88,24 @@
 .node-label.white-text.active-branch {
   opacity: 1;
 }
+
+/* Tracked node rings (problem authoring) */
+.tracked-ring {
+  fill: none;
+  stroke-width: 2.5;
+  pointer-events: none;
+}
+
+.tracked-ring.tracked-default {
+  stroke: #4a4;
+}
+
+.tracked-ring.tracked-correct {
+  stroke: #2a2;
+  stroke-width: 3;
+}
+
+.tracked-ring.tracked-wrong {
+  stroke: #c44;
+  stroke-width: 3;
+}

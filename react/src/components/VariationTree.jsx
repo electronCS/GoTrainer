@@ -14,7 +14,7 @@ const BG_RADIUS = 15
  *   onSelectNode — callback (gameNode) => void
  *   version     — bumped on tree mutations (triggers layout recompute)
  */
-export default function VariationTree({ rootNode, currentNode, onSelectNode, version }) {
+export default function VariationTree({ rootNode, currentNode, onSelectNode, version, trackedNodes, annotationVersion }) {
   const containerRef = useRef(null)
   const currentNodeRef = useRef(null)
 
@@ -71,6 +71,8 @@ export default function VariationTree({ rootNode, currentNode, onSelectNode, ver
           const isActive = activeBranch.has(gn)
           const isBlack = gn.color === 'B'
           const isWhite = gn.color === 'W'
+          const isTracked = trackedNodes?.has(gn)
+          const problemMarker = gn._problemMarker // 'correct' | 'wrong' | undefined
 
           const nodeClass = [
             'tree-node',
@@ -114,6 +116,39 @@ export default function VariationTree({ rootNode, currentNode, onSelectNode, ver
 
               {/* Colored node circle */}
               <circle cx={n.x} cy={n.y} r={NODE_RADIUS} className={nodeClass} />
+
+              {/* Tracked node ring (problem authoring) — color based on reachable leaf result */}
+              {isTracked && (() => {
+                // Determine ring color: walk descendants to find if any path leads to correct/wrong
+                let ringClass = 'tracked-default'
+                if (problemMarker === 'correct') {
+                  ringClass = 'tracked-correct'
+                } else if (problemMarker === 'wrong') {
+                  ringClass = 'tracked-wrong'
+                } else {
+                  // Intermediate node — check descendants
+                  const findLeafResult = (node) => {
+                    if (!trackedNodes?.has(node) && node !== gn) return null
+                    const m = node._problemMarker
+                    if (m) return m
+                    const trackedKids = node.children.filter((c) => trackedNodes?.has(c))
+                    if (trackedKids.length === 0) return null
+                    for (const kid of trackedKids) {
+                      if (findLeafResult(kid) === 'correct') return 'correct'
+                    }
+                    for (const kid of trackedKids) {
+                      if (findLeafResult(kid) === 'wrong') return 'wrong'
+                    }
+                    return null
+                  }
+                  const result = findLeafResult(gn)
+                  if (result === 'correct') ringClass = 'tracked-correct'
+                  else if (result === 'wrong') ringClass = 'tracked-wrong'
+                }
+                return (
+                  <circle cx={n.x} cy={n.y} r={NODE_RADIUS + 3} className={`tracked-ring ${ringClass}`} />
+                )
+              })()}
 
               {/* Move number label */}
               <text x={n.x} y={n.y + 4} className={labelClass}>

@@ -299,6 +299,79 @@ export class GameTree {
     this.currentNode = this.root
   }
 
+  /**
+   * Inject variation branches from a problem SGF at the current node.
+   * Parses the problem SGF, takes its root's children (answer branches),
+   * and attaches them as new children of the current node with proper
+   * board state caching.
+   *
+   * @param {string} problemSgf  SGF string with problem variations
+   * @returns {number} number of variations injected
+   */
+  injectVariations(problemSgf) {
+    const parsed = parseSgf(problemSgf)
+    if (!parsed?.children?.length) return 0
+
+    const currentBoard = this.currentNode.board
+    const currentMoveNumber = this.currentNode.moveNumber
+    let count = 0
+
+    const convertAndAttach = (parsedNode, parentGameNode, parentBoard, moveNumber) => {
+      const props = parsedNode.props
+      const isMoveNode = props.B !== undefined || props.W !== undefined
+      let board = parentBoard
+      const newMoveNumber = isMoveNode ? moveNumber + 1 : moveNumber
+
+      if (isMoveNode) {
+        const color = props.B !== undefined ? 'B' : 'W'
+        const coord = props[color]
+        const sign = color === 'B' ? 1 : -1
+
+        if (coord && coord.length === 2) {
+          const [x, y] = this._fromSgfCoord(coord)
+          try {
+            board = board.makeMove(sign, [x, y])
+          } catch {
+            // Invalid move — keep current board
+          }
+        }
+      }
+
+      const gameNode = new GameNode({
+        props,
+        board,
+        moveNumber: newMoveNumber,
+      })
+
+      parentGameNode.addChild(gameNode)
+
+      for (const child of parsedNode.children) {
+        convertAndAttach(child, gameNode, board, newMoveNumber)
+      }
+    }
+
+    // Copy the problem root's comment to the injection node (problem description)
+    if (parsed.props?.C && !this.currentNode.props.C) {
+      this.currentNode.props.C = parsed.props.C
+    }
+
+    // Attach each child of the problem root as a variation at the current node
+    // Skip if a child with the same move already exists (dedup on re-inject)
+    for (const child of parsed.children) {
+      const move = child.props?.B || child.props?.W
+      const color = child.props?.B !== undefined ? 'B' : 'W'
+      const alreadyExists = move && this.currentNode.children.some(
+        (existing) => existing.props[color] === move && existing.props.C === child.props?.C
+      )
+      if (!alreadyExists) {
+        convertAndAttach(child, this.currentNode, currentBoard, currentMoveNumber)
+        count++
+      }
+    }
+
+    return count
+  }
+
   // --- Internal helpers ---
 
   _toSgfCoord(x, y) {

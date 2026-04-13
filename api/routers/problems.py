@@ -3,7 +3,7 @@ Problem REST endpoints.
 
 GET  /api/problems         — search problems by tags
 GET  /api/problems/tags    — list all available tags
-GET  /api/problems/:id     — get a single problem (includes SGF content)
+GET  /api/problems/:id     — get a single problem (includes source SGF content if available)
 POST /api/problems         — create a new problem
 PUT  /api/problems/:id     — update a problem
 DELETE /api/problems/:id   — delete a problem
@@ -26,9 +26,9 @@ repo = JsonFileRepository(str(DATA_FILE))
 
 
 class ProblemResponse(BaseModel):
-    """Problem with optional SGF content."""
+    """Problem with optional source SGF content for context viewing."""
     problem: Problem
-    sgf_content: Optional[str] = None
+    source_sgf_content: Optional[str] = None  # full game SGF if source_sgf_file exists
 
 
 @router.get("")
@@ -57,21 +57,33 @@ async def list_tags():
 
 @router.get("/{problem_id}")
 async def get_problem(problem_id: str):
-    """Get a single problem, including the SGF file content."""
+    """
+    Get a single problem.
+
+    Returns:
+    - problem: the Problem object (includes `sgf` with the problem tree)
+    - source_sgf_content: if `source_sgf_file` is set, the full game SGF for
+      context viewing. The frontend can load this game, navigate to
+      `source_move_number`, and inject the problem variations at that point.
+    """
     problem = repo.get(problem_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    # Load SGF content
-    sgf_content = None
-    sgf_path = PROJECT_ROOT / problem.sgf_file
-    if sgf_path.exists():
-        try:
-            sgf_content = sgf_path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            sgf_content = sgf_path.read_text(encoding="latin-1")
+    # Load source game SGF if referenced
+    source_sgf_content = None
+    if problem.source_sgf_file:
+        sgf_path = PROJECT_ROOT / problem.source_sgf_file
+        if sgf_path.exists():
+            try:
+                source_sgf_content = sgf_path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                source_sgf_content = sgf_path.read_text(encoding="latin-1")
 
-    return ProblemResponse(problem=problem, sgf_content=sgf_content).model_dump()
+    return ProblemResponse(
+        problem=problem,
+        source_sgf_content=source_sgf_content,
+    ).model_dump()
 
 
 @router.post("", status_code=201)

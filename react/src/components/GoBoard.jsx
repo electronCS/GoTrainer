@@ -292,12 +292,15 @@ export default function GoBoard({
         )
       })}
 
-      {/* Board markers (answer indicators, etc.) */}
+      {/* Board markers (answer indicators: ✓ for correct, ✗ for wrong) */}
       {markers.map((m, i) => (
         <g key={`marker-${i}`} className="board-marker">
-          <circle cx={m.x} cy={m.y} r={stoneRadius * 0.6} className="answer-marker-bg" />
-          <text x={m.x} y={m.y} className="answer-marker-text" style={{ fontSize: 0.5 }}>
-            ✓
+          <circle cx={m.x} cy={m.y} r={stoneRadius * 0.6}
+            className={m.type === 'wrong-answer' ? 'wrong-marker-bg' : 'answer-marker-bg'} />
+          <text x={m.x} y={m.y}
+            className={m.type === 'wrong-answer' ? 'wrong-marker-text' : 'answer-marker-text'}
+            style={{ fontSize: 0.5 }}>
+            {m.type === 'wrong-answer' ? '✗' : '✓'}
           </text>
         </g>
       ))}

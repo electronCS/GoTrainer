@@ -90,6 +90,12 @@ export function useGameTree(size = 19) {
     bump()
   }, [])
 
+  const injectVariations = useCallback((problemSgf) => {
+    const count = treeRef.current.injectVariations(problemSgf)
+    if (count > 0) bump()
+    return count
+  }, [])
+
   const tree = treeRef.current
 
   return {
@@ -110,6 +116,7 @@ export function useGameTree(size = 19) {
     goToNode,
     loadSgf,
     saveSnapshot,
+    injectVariations,
     restoreSnapshot,
     reset,
   }
