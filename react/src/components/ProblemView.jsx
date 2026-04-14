@@ -35,6 +35,9 @@ export default function ProblemView({
   onSolveModeChange,
   onEditProblem,
   onDeleteProblem,
+  onViewOriginalGame,
+  onReturnToProblem,
+  isViewingOriginalGame,
 }) {
   const [searchTags, setSearchTags] = useState('')
   const [problems, setProblems] = useState([])
@@ -246,6 +249,21 @@ export default function ProblemView({
       {problemActive && isSolutionMode && !commentInfo && (
         <div className="pv-solution-info">
           <p>Browse the variation tree to explore all answer branches.</p>
+        </div>
+      )}
+
+      {/* View Original Game toggle — only in View Solution mode */}
+      {problemActive && isSolutionMode && problemData?.sourceSgfContent && (
+        <div className="pv-manage">
+          {isViewingOriginalGame ? (
+            <button className="pv-return-btn" onClick={onReturnToProblem}>
+              ↩ View Problem
+            </button>
+          ) : (
+            <button className="pv-game-btn" onClick={onViewOriginalGame}>
+              📋 View Original Game
+            </button>
+          )}
         </div>
       )}
 

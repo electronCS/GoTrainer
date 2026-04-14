@@ -363,8 +363,9 @@ export class GameTree {
     for (const child of parsed.children) {
       const move = child.props?.B || child.props?.W
       const color = child.props?.B !== undefined ? 'B' : 'W'
+      // Only dedup against other _isProblemNode children (never against game nodes)
       const alreadyExists = move && this.currentNode.children.some(
-        (existing) => existing.props[color] === move && existing.props.C === child.props?.C
+        (existing) => existing._isProblemNode && existing.props[color] === move
       )
       if (!alreadyExists) {
         convertAndAttach(child, this.currentNode, currentBoard, currentMoveNumber)

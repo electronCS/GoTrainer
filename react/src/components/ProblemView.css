@@ -322,6 +322,34 @@
   background: #f8e0e0;
 }
 
+.pv-game-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid #ac8;
+  border-radius: 4px;
+  background: #f0f8e8;
+  color: #484;
+  cursor: pointer;
+}
+
+.pv-game-btn:hover {
+  background: #e0f0d8;
+}
+
+.pv-return-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid #aac;
+  border-radius: 4px;
+  background: #f0f0ff;
+  color: #44a;
+  cursor: pointer;
+}
+
+.pv-return-btn:hover {
+  background: #e0e0f8;
+}
+
 /* Results */
 .pv-results-header {
   font-size: 13px;

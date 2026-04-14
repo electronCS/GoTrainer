@@ -16,5 +16,38 @@
     "tags": [],
     "description": "",
     "created_at": "2026-04-13T20:56:56.004626+00:00"
+  },
+  {
+    "id": "cc5fad3b",
+    "sgf": "(;GM[1]SZ[19]AB[nc][pd][de][cf][df][cj][qj][pm][qm][mp][op][pq]AW[dc][fc][qc][cd][rd][ce][qf][om][nn][pn][qo][cq]PL[B]C[A or B]LB[kc:B][pc:A](;B[pc]C[WRONG: This is too narrow. Additionally, the marked white stones are already quite solid.]SQ[qc][rd][qf])(;B[kc]C[CORRECT: Black should play a 2 space extension to take a base.]))",
+    "source_sgf_file": "goTrainer/uploads/85982417-249-zgchengo-dodoro.sgf",
+    "source_move_number": 25,
+    "tags": [
+      "Dorothy"
+    ],
+    "description": "A or B",
+    "created_at": "2026-04-13T21:42:24.259639+00:00"
+  },
+  {
+    "id": "8cad60d9",
+    "sgf": "(;GM[1]SZ[19]AB[nc][pc][pd][de][cf][df][of][oi][cj][pj][qj][pm][qm][mp][op][pq]AW[dc][fc][lc][qc][cd][rd][ce][qf][qh][ol][om][ln][nn][pn][qo][cq]PL[B]C[A or B]LB[jc:A][jp:B](;B[jc]C[WRONG: The black stones here are not strong yet ( There are still cutting points and there is not a lot of eyespace). You should not be using them to attack.]SQ[pc][pd][nc][of][oi])(;B[jp]C[CORRECT: Avoid being sealed, and at the same time, take points. White's group is not entirely settled also so you can apply some pressure with this move as well]SQ[ln][nn][om][ol][pn][qo]))",
+    "source_sgf_file": "goTrainer/uploads/85982417-249-zgchengo-dodoro.sgf",
+    "source_move_number": 32,
+    "tags": [
+      "Dorothy"
+    ],
+    "description": "A or B",
+    "created_at": "2026-04-13T21:34:59.201383+00:00"
+  },
+  {
+    "id": "a67a0b14",
+    "sgf": "(;GM[1]SZ[19]AB[qb][ec][jc][kc][nc][pc][ed][jd][md][pd][qd][de][ge][je][bf][cf][df][of][jg][oh][oi][cj][pj][qj][bl][cl][el][cm][pm][qm][dn][do][bp][cp][dp][ep][fp][gp][hp][ip][mp][op][qp][rp][fq][iq][kq][mq][pq][jr][kr][lr]AW[eb][gb][rb][dc][fc][lc][qc][rc][cd][kd][ld][rd][ce][ke][le][qf][lg][mh][qh][hi][jj][nj][fk][ol][bm][gm][om][an][cn][in][ln][nn][pn][ao][bo][co][qo][ro][ap][jp][kp][lp][bq][cq][dq][eq][gq][hq][jq][lq][fr][hr][ir]PL[B]C[What can black do in the upper left corner?](;B[bc];W[cc];B[bd];W[be];B[ae];W[bb];B[ab]C[CORRECT: Black reduces white in sente!]))",
+    "source_sgf_file": "goTrainer/uploads/85982417-249-zgchengo-dodoro.sgf",
+    "source_move_number": 106,
+    "tags": [
+      "Dorothy"
+    ],
+    "description": "What can black do in the upper left corner?",
+    "created_at": "2026-04-13T21:50:05.810315+00:00"
   }
 ]

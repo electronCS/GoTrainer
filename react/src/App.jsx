@@ -66,6 +66,8 @@ function App() {
   const [trackedNodes, setTrackedNodes] = useState(() => new Set())
   const [editingProblemId, setEditingProblemId] = useState(null) // non-null = editing existing problem
   const [editingProblemTags, setEditingProblemTags] = useState('')
+  const [pendingEditProblem, setPendingEditProblem] = useState(null) // set to trigger edit after re-render
+  const [pendingViewOriginal, setPendingViewOriginal] = useState(null) // triggers game load + inject after re-render
 
   // Source SGF path tracking — set when loading an SGF file
   const sourceSgfPathRef = useRef(null)
@@ -295,6 +297,9 @@ function App() {
     setAuthoringRootNode(currentNode)
     setTrackedNodes(new Set())
     setAnnotationTool('stone')
+    setBoardMode('analyze') // ensure annotation toolbar is available
+    setEditingProblemId(null)
+    setEditingProblemTags('')
   }, [currentNode])
 
   // Cancel problem authoring
@@ -330,50 +335,50 @@ function App() {
   const handleEditProblem = useCallback((problem) => {
     // Load the problem SGF into the game tree
     loadSgf(problem.sgf)
+    // Defer the rest to a useEffect via pendingEditProblem — rootNode is stale in this closure
+    setPendingEditProblem(problem)
+    setProblemActive(false)
+    setProblemData(null)
+  }, [loadSgf])
 
-    // After loadSgf, the tree is loaded. Use setTimeout to let React re-render.
-    setTimeout(() => {
-      // rootNode is now the problem root (has AB/AW setup)
-      const probRoot = rootNode
+  // Effect: after loadSgf re-renders with the new rootNode, finish setting up edit mode
+  useEffect(() => {
+    if (!pendingEditProblem || !rootNode) return
+    const problem = pendingEditProblem
+    setPendingEditProblem(null)
 
-      // Walk all descendants to build trackedNodes and set markers
-      const tracked = new Set()
-      const walkAndTrack = (node) => {
-        for (const child of node.children) {
-          tracked.add(child)
+    const probRoot = rootNode
 
-          // Check leaf comments for CORRECT/WRONG markers
-          const comment = child.props.C || ''
-          if (child.children.length === 0) {
-            if (comment.startsWith('CORRECT:') || comment.startsWith('CORRECT')) {
-              child._problemMarker = 'correct'
-              // Strip the prefix so the comment is editable
-              child.props.C = comment.replace(/^CORRECT:\s*/, '').replace(/^CORRECT\s*/, '') || undefined
-            } else if (comment.startsWith('WRONG:') || comment.startsWith('WRONG')) {
-              child._problemMarker = 'wrong'
-              child.props.C = comment.replace(/^WRONG:\s*/, '').replace(/^WRONG\s*/, '') || undefined
-            }
+    // Walk all descendants to build trackedNodes and set markers
+    const tracked = new Set()
+    const walkAndTrack = (node) => {
+      for (const child of node.children) {
+        tracked.add(child)
+        const comment = child.props.C || ''
+        if (child.children.length === 0) {
+          if (comment.startsWith('CORRECT:') || comment.startsWith('CORRECT')) {
+            child._problemMarker = 'correct'
+            child.props.C = comment.replace(/^CORRECT:\s*/, '').replace(/^CORRECT\s*/, '') || undefined
+          } else if (comment.startsWith('WRONG:') || comment.startsWith('WRONG')) {
+            child._problemMarker = 'wrong'
+            child.props.C = comment.replace(/^WRONG:\s*/, '').replace(/^WRONG\s*/, '') || undefined
           }
-
-          walkAndTrack(child)
         }
+        walkAndTrack(child)
       }
-      walkAndTrack(probRoot)
+    }
+    walkAndTrack(probRoot)
 
-      // Enter authoring mode
-      setEditingProblemId(problem.id)
-      setEditingProblemTags((problem.tags || []).join(', '))
-      sourceSgfPathRef.current = problem.source_sgf_file || null
-      setAuthoringRootNode(probRoot)
-      setTrackedNodes(tracked)
-      setAuthoringActive(true)
-      setAnnotationTool('stone')
-      setBoardMode('analyze')
-      setProblemActive(false)
-      setProblemData(null)
-      setAnnotationVersion((v) => v + 1)
-    }, 50)
-  }, [loadSgf, rootNode])
+    setEditingProblemId(problem.id)
+    setEditingProblemTags((problem.tags || []).join(', '))
+    sourceSgfPathRef.current = problem.source_sgf_file || null
+    setAuthoringRootNode(probRoot)
+    setTrackedNodes(tracked)
+    setAuthoringActive(true)
+    setAnnotationTool('stone')
+    setBoardMode('analyze')
+    setAnnotationVersion((v) => v + 1)
+  }, [pendingEditProblem, rootNode])
 
   /**
    * Delete a problem by ID.
@@ -564,62 +569,104 @@ function App() {
     setSelection(savedSelection); setSavedPosition(null); setSavedSelection(null); setViewingHit(false)
   }, [savedPosition, savedSelection, restoreSnapshot])
 
-  const handleLoadProblem = useCallback(({ problemSgf, sourceSgfContent, sourceMoveNumber, problem }) => {
-    // Parse the problem SGF string to extract correct answer coordinates
-    const correctAnswers = []
-    try {
-      const tree = parseSgf(problemSgf)
-      if (tree?.children) {
-        for (const child of tree.children) {
-          const move = child.props?.B || child.props?.W
-          if (move) {
-            let node = child
-            while (node.children?.length > 0) node = node.children[0]
-            const comment = node.props?.C || child.props?.C || ''
-            if (comment.startsWith('CORRECT:') || comment.startsWith('CORRECT')) {
-              correctAnswers.push(move)
-            }
-          }
+  /**
+   * Pre-compute problem results on nodes via post-order DFS.
+   * Sets `_problemResult` = 'correct' | 'wrong' | null on every node in the tree.
+   * Called once after loading a problem SGF.
+   */
+  const computeProblemResults = useCallback((root) => {
+    const dfs = (node) => {
+      if (!node.children || node.children.length === 0) {
+        // Leaf — check CORRECT/WRONG comment
+        const c = node.props.C || ''
+        if (c.startsWith('CORRECT:') || c.startsWith('CORRECT')) {
+          node._problemResult = 'correct'
+        } else if (c.startsWith('WRONG:') || c.startsWith('WRONG')) {
+          node._problemResult = 'wrong'
+        } else {
+          node._problemResult = null
         }
+        return node._problemResult
       }
-    } catch (err) {
-      console.error('Failed to parse problem SGF:', err)
+
+      let hasCorrect = false
+      let hasWrong = false
+      for (const child of node.children) {
+        const childResult = dfs(child)
+        if (childResult === 'correct') hasCorrect = true
+        else if (childResult === 'wrong') hasWrong = true
+      }
+
+      node._problemResult = hasCorrect ? 'correct' : hasWrong ? 'wrong' : null
+      return node._problemResult
     }
 
-    let problemMN = 0
+    dfs(root)
+  }, [])
+
+  const handleLoadProblem = useCallback(({ problemSgf, sourceSgfContent, sourceMoveNumber, problem }) => {
+    // Always load the standalone problem SGF directly (no injection).
+    // This is the safe, simple path — the entire tree IS the problem.
+    // "View Original Game" loads the source game + injects later.
+    loadSgf(problemSgf)
 
     // Reset the ref — will be captured after navigation
     problemRootNodeRef.current = null
 
-    if (sourceSgfContent && sourceMoveNumber != null) {
-      // Load the full source game, navigate to the problem position,
-      // then inject the problem variations as branches at that node
-      loadSgf(sourceSgfContent)
-      // Use setTimeout to ensure loadSgf has updated the tree
-      setTimeout(() => {
-        goToStart()
-        goForwardN(sourceMoveNumber)
-        // Inject problem variation branches at this position
-        injectVariations(problemSgf)
-        // Capture the problem root now — currentNode is at the right position
-        // (We can't rely on the useEffect because it triggers on every currentNode change)
-      }, 0)
-      problemMN = sourceMoveNumber
-    } else {
-      // No source game — load the self-contained problem SGF directly
-      loadSgf(problemSgf)
-    }
-
     // Persist current problem ID for refresh recovery
     localStorage.setItem('gotrainer_problem_id', problem.id)
 
-    setProblemData({ correctAnswers, description: problem.description, problem })
-    setProblemMoveNumber(problemMN)
+    setProblemData({
+      description: problem.description,
+      problem,
+      // Store source info for "View Original Game" button
+      sourceSgfContent: sourceSgfContent || null,
+      sourceMoveNumber: sourceMoveNumber ?? null,
+      problemSgf,
+    })
+    setProblemMoveNumber(0) // standalone problem, no injection
     setAnswerResult(null)
     setProblemSolveMode('try')
     setShowAnswerOnBoard(false)
     setProblemActive(true)
-  }, [loadSgf, goToStart, goForwardN, injectVariations])
+  }, [loadSgf])
+
+  /**
+   * "View Original Game" — load source game, navigate to problem position, inject variations.
+   */
+  const handleViewOriginalGame = useCallback(() => {
+    if (!problemData?.sourceSgfContent || problemData.sourceMoveNumber == null) return
+    const { sourceSgfContent, sourceMoveNumber, problemSgf } = problemData
+
+    setShowAnswerOnBoard(false)
+    problemRootNodeRef.current = 'pending'
+
+    loadSgf(sourceSgfContent)
+    setPendingViewOriginal({ sourceMoveNumber, problemSgf })
+    setProblemMoveNumber(sourceMoveNumber)
+  }, [problemData, loadSgf, goToStart, goForwardN, injectVariations])
+
+  /**
+   * Return from "View Original Game" back to standalone problem SGF.
+   */
+  const handleReturnToProblem = useCallback(() => {
+    if (!problemData?.problemSgf) return
+    loadSgf(problemData.problemSgf)
+    setProblemMoveNumber(0)
+    problemRootNodeRef.current = null
+  }, [problemData, loadSgf])
+
+  // Effect: after loadSgf re-renders with the source game tree, navigate + inject
+  useEffect(() => {
+    if (!pendingViewOriginal || !rootNode) return
+    const { sourceMoveNumber, problemSgf } = pendingViewOriginal
+    setPendingViewOriginal(null)
+
+    goToStart()
+    goForwardN(sourceMoveNumber)
+    injectVariations(problemSgf)
+    problemRootNodeRef.current = null
+  }, [pendingViewOriginal, rootNode, goToStart, goForwardN, injectVariations])
 
   // After loading a problem and navigating, capture the problem root node
   useEffect(() => {
@@ -705,65 +752,31 @@ function App() {
   // Extract comment from current node
   const comment = currentNode?.props?.C || ''
 
-  // Dynamic answer markers — in solution mode, show ✓/✗ on current node's children
-  const answerMarkers = useMemo(() => {
-    if (!showAnswerOnBoard || !problemActive) return []
-
-    // Check if this is an injected problem (source game + problem variations)
-    // by checking if problemMoveNumber is set (meaning problem was injected into a game)
-    const isInjectedProblem = problemMoveNumber > 0
-
-    // Walk a subtree to find the leaf result: 'correct', 'wrong', or null
-    // For injected problems: ONLY follow _isProblemNode children (never game nodes)
-    // For standalone problems: follow all children
-    const getLeafResult = (node, depth = 0) => {
-      if (!node || depth > 30) return null
-      const comment = node.props.C || ''
-      const kids = isInjectedProblem
-        ? node.children.filter((c) => c._isProblemNode)
-        : node.children
-
-      const isProblemLeaf = kids.length === 0
-      if (isProblemLeaf) {
-        if (comment.startsWith('CORRECT:') || comment.startsWith('CORRECT')) return 'correct'
-        if (comment.startsWith('WRONG:') || comment.startsWith('WRONG')) return 'wrong'
-        return null
-      }
-      // For non-leaf, check paths (any correct path means correct)
-      for (const child of kids) {
-        const result = getLeafResult(child, depth + 1)
-        if (result === 'correct') return 'correct'
-      }
-      // If no correct path found, check for wrong
-      for (const child of kids) {
-        const result = getLeafResult(child, depth + 1)
-        if (result === 'wrong') return 'wrong'
-      }
-      return null
+  // Pre-compute _problemResult on all nodes when a problem is loaded (standalone)
+  // This runs once after loadSgf updates rootNode. Uses post-order DFS.
+  useEffect(() => {
+    if (problemActive && rootNode && problemMoveNumber === 0) {
+      computeProblemResults(rootNode)
     }
+  }, [problemActive, rootNode, problemMoveNumber, computeProblemResults])
+
+  // Answer markers — O(1) lookup using pre-computed _problemResult on each child node
+  const answerMarkers = useMemo(() => {
+    if (!showAnswerOnBoard || !problemActive || !currentNode?.children) return []
 
     const markers = []
-    if (currentNode?.children) {
-      // Only show markers for problem children (or all children for standalone problems)
-      const kids = isInjectedProblem
-        ? currentNode.children.filter((c) => c._isProblemNode)
-        : currentNode.children
-      for (const child of kids) {
-        const move = child.props.B || child.props.W
-        if (move && move.length === 2) {
-          const result = getLeafResult(child)
-          if (result) {
-            markers.push({
-              x: move.charCodeAt(0) - 97,
-              y: move.charCodeAt(1) - 97,
-              type: result === 'correct' ? 'answer' : 'wrong-answer',
-            })
-          }
-        }
+    for (const child of currentNode.children) {
+      const move = child.props.B || child.props.W
+      if (move && move.length === 2 && child._problemResult) {
+        markers.push({
+          x: move.charCodeAt(0) - 97,
+          y: move.charCodeAt(1) - 97,
+          type: child._problemResult === 'correct' ? 'answer' : 'wrong-answer',
+        })
       }
     }
     return markers
-  }, [showAnswerOnBoard, problemActive, currentNode, problemMoveNumber])
+  }, [showAnswerOnBoard, problemActive, currentNode])
 
   // Winrate bar — use pre-computed absolute values from the hook
   // (blackWinrate and blackScoreLead are already in Black's perspective)
@@ -829,7 +842,7 @@ function App() {
             New Game
           </button>
 
-          {boardMode === 'analyze' && !authoringActive && (
+          {!authoringActive && (
             <button
               onClick={handleStartAuthoring}
               title="Create a problem from the current position"
@@ -1062,6 +1075,9 @@ function App() {
               onSolveModeChange={setProblemSolveMode}
               onEditProblem={handleEditProblem}
               onDeleteProblem={handleDeleteProblem}
+              onViewOriginalGame={handleViewOriginalGame}
+              onReturnToProblem={handleReturnToProblem}
+              isViewingOriginalGame={problemMoveNumber > 0}
             />
           )}
         </div>
